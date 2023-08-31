@@ -19,6 +19,7 @@ int readCommandLine( int argc, char *argv[], Config *pConfig )
       { 12, (char *)"downkey",         (char *)"Down Key",                                 (char *)"dk", 1 },
       { 13, (char *)"leftkey",         (char *)"Left Key",                                 (char *)"lk", 1 },
       { 14, (char *)"rightkey",        (char *)"Right Key",                                (char *)"rk", 1 },
+      { 15, (char *)"debug",           (char *)"Debugger",                                 (char *)"d",  0 },
       { 0,   NULL,                     NULL,                                               NULL,         0 }
    };
 
@@ -116,6 +117,7 @@ int readCommandLine( int argc, char *argv[], Config *pConfig )
             SDL_Keycode c = SDL_GetKeyFromName( args );
             if( c != 0 )
                pConfig->startKey = c;
+            break;
          }
 
          case 9: /* A Key */
@@ -123,6 +125,7 @@ int readCommandLine( int argc, char *argv[], Config *pConfig )
             SDL_Keycode c = SDL_GetKeyFromName( args );
             if( c != 0 )
                pConfig->aKey = c;
+            break;
          }
 
          case 10: /* B Key */
@@ -130,6 +133,7 @@ int readCommandLine( int argc, char *argv[], Config *pConfig )
             SDL_Keycode c = SDL_GetKeyFromName( args );
             if( c != 0 )
                pConfig->bKey = c;
+            break;
          }
 
          case 11: /* Up Key */
@@ -137,6 +141,7 @@ int readCommandLine( int argc, char *argv[], Config *pConfig )
             SDL_Keycode c = SDL_GetKeyFromName( args );
             if( c != 0 )
                pConfig->upKey = c;
+            break;
          }
 
          case 12: /* Down Key */
@@ -144,6 +149,7 @@ int readCommandLine( int argc, char *argv[], Config *pConfig )
             SDL_Keycode c = SDL_GetKeyFromName( args );
             if( c != 0 )
                pConfig->downKey = c;
+            break;
          }
 
          case 13: /* Left Key */
@@ -151,6 +157,7 @@ int readCommandLine( int argc, char *argv[], Config *pConfig )
             SDL_Keycode c = SDL_GetKeyFromName( args );
             if( c != 0 )
                pConfig->leftKey = c;
+            break;
          }
 
          case 14: /* Right Key */
@@ -158,6 +165,13 @@ int readCommandLine( int argc, char *argv[], Config *pConfig )
             SDL_Keycode c = SDL_GetKeyFromName( args );
             if( c != 0 )
                pConfig->rightKey = c;
+            break;
+         }
+
+         case 15: /* Debug */
+         {
+            pConfig->debug = true;
+            break;
          }
 
          default:

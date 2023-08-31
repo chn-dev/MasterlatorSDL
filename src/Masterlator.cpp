@@ -10,6 +10,9 @@
 
 #include "EmulatorCore/GGMS.h"
 
+#define FRAME_W (256+8)
+#define FRAME_H (192+8)
+
 #define TICKS_FOR_NEXT_FRAME (1000 / 60)
 
 int main( int argc, char *argv[] )
@@ -30,6 +33,12 @@ int main( int argc, char *argv[] )
 
    config.screenBufferWidth = pMachine->screenWidth();
    config.screenBufferHeight = pMachine->screenHeight();
+
+   if( config.debug )
+   {
+      config.screenBufferWidth = 854;
+      config.screenBufferHeight = 480;
+   }
 
    if( config.windowWidth < 0 )
    {
@@ -78,7 +87,11 @@ int main( int argc, char *argv[] )
 
    do
    {
-      pMachine->renderFrame( pScreenBuffer, config.screenBufferWidth, config.screenBufferHeight, 0, 0 );
+      pMachine->renderFrame(
+         pScreenBuffer,
+         config.screenBufferWidth, config.screenBufferHeight,
+         config.debug ? ( config.screenBufferWidth - FRAME_W ) + ( FRAME_W - pMachine->screenWidth() ) / 2 : 0,
+         config.debug ? ( FRAME_H - pMachine->screenHeight() ) / 2 : 0 );
 
       for( int i = 0; i < 32; i++ )
       {

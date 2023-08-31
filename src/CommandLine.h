@@ -16,6 +16,7 @@ typedef struct Config
    bool keepar = false;
    bool maximized = false;
    bool fullscreen = false;
+   bool debug = false;
    SDL_Keycode aKey = SDLK_y;
    SDL_Keycode bKey = SDLK_x;
    SDL_Keycode startKey = SDLK_RETURN;
