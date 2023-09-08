@@ -1,4 +1,4 @@
-#include <map>
+#include <set>
 
 #include "ArchSDL.h"
 #include <SDL.h>
@@ -10,7 +10,7 @@ static SDL_Surface *pRenderSurface = 0;
 static SDL_AudioDeviceID audioDeviceId = -1;
 
 static bool quit = false;
-static std::map<SDL_Keycode, bool> keyMap;
+static std::set<SDL_Keycode> keyMap;
 
 
 static void mixcallback( void *userdata, Uint8 *stream, int len )
@@ -92,6 +92,20 @@ bool initSDL( GGMS *pMachine, const Config *pConfig )
 }
 
 
+static void setKeyPressed( SDL_Keycode keyCode, bool pressed )
+{
+   keyMap.erase( keyCode );
+   if( pressed )
+      keyMap.insert( keyCode );
+}
+
+
+bool isKeyPressed( SDL_Keycode keyCode )
+{
+   return( keyMap.find( keyCode ) != keyMap.end() );
+}
+
+
 bool runSDL( GGMS *pMachine, const Config *pConfig, u8 *pScreenBuffer, Uint32 *pPalette )
 {
    SDL_Event e;
@@ -102,65 +116,96 @@ bool runSDL( GGMS *pMachine, const Config *pConfig, u8 *pScreenBuffer, Uint32 *p
          bool keyDown = e.key.state == SDL_PRESSED;
          SDL_Keycode keyCode = e.key.keysym.sym;
 
-         bool curDown = false;
-
-         if( keyMap.find( keyCode ) != keyMap.end() )
-         {
-            curDown = keyMap[keyCode];
-         }
-
-         keyMap[keyCode] = keyDown;
+         bool curDown = isKeyPressed( keyCode );
+         setKeyPressed( keyCode, keyDown );
 
          if( keyDown != curDown )
          {
             if( keyDown && keyCode == SDLK_ESCAPE )
             {
                quit = true;
-            } else
+            }
+
             if( keyDown && keyCode == SDLK_RETURN )
             {
-               if( keyMap[SDLK_LALT] )
+               if( isKeyPressed( SDLK_LALT ) )
                {
                   Uint32 f = SDL_GetWindowFlags( pWindow );
                   bool isFull = ( f & SDL_WINDOW_FULLSCREEN ) || ( f & SDL_WINDOW_FULLSCREEN_DESKTOP );
                   SDL_SetWindowFullscreen( pWindow, isFull ? 0 : SDL_WINDOW_FULLSCREEN_DESKTOP );
                   SDL_ShowCursor( isFull );
                }
-            } else
+            }
+
+            if( keyDown && keyCode == SDLK_d )
             {
-               if( keyCode == pConfig->aKey )
+               u16 loc = pMachine->cpu()->getPC();
+               printf( "PC = %04x\n", loc );
+/*               for( int i = 0; i < 16; i++ )
                {
-                  pMachine->setP1AButton( keyDown );
-               }
+                  int s = 0;
+                  std::string d = pMachine->cpu()->disassemble( loc, &s );
+                  if( loc == pMachine->cpu()->getPC() )
+                     printf( "*" );
+                  else
+                     printf( " " );
 
-               if( keyCode == pConfig->bKey )
+                  printf( "%04x - %s\n", loc, d.c_str() );
+                  loc += s;
+               }*/
+               int x = 0;
+               for( int i = 1; i < 256; i++ )
                {
-                  pMachine->setP1BButton( keyDown );
-               }
-               if( keyCode == pConfig->startKey )
-               {
-                  pMachine->setP1StartButton( keyDown );
-               }
+                  int s = 0;
+                  std::vector<std::string> d = pMachine->cpu()->disassemble( loc - i, 10, &s );
 
-               if( keyCode == pConfig->upKey )
-               {
-                  pMachine->setP1UpButton( keyDown );
+                  if( loc - i + s == loc )
+                  {
+                     x++;
+                     printf( "* %d - %d instructions %d\n", x, d.size(), -i );
+                     for( int j = 0; j < d.size(); j++ )
+                     {
+                        printf( "%s\n", d[j].c_str() );
+                     }
+                     printf("\n");
+                  }
                }
+               printf( "========\n");
 
-               if( keyCode == pConfig->downKey )
-               {
-                  pMachine->setP1DownButton( keyDown );
-               }
+            }
 
-               if( keyCode == pConfig->leftKey )
-               {
-                  pMachine->setP1LeftButton( keyDown );
-               }
+            if( keyCode == pConfig->aKey )
+            {
+               pMachine->setP1AButton( keyDown );
+            }
 
-               if( keyCode == pConfig->rightKey )
-               {
-                  pMachine->setP1RightButton( keyDown );
-               }
+            if( keyCode == pConfig->bKey )
+            {
+               pMachine->setP1BButton( keyDown );
+            }
+            if( keyCode == pConfig->startKey )
+            {
+               pMachine->setP1StartButton( keyDown );
+            }
+
+            if( keyCode == pConfig->upKey )
+            {
+               pMachine->setP1UpButton( keyDown );
+            }
+
+            if( keyCode == pConfig->downKey )
+            {
+               pMachine->setP1DownButton( keyDown );
+            }
+
+            if( keyCode == pConfig->leftKey )
+            {
+               pMachine->setP1LeftButton( keyDown );
+            }
+
+            if( keyCode == pConfig->rightKey )
+            {
+               pMachine->setP1RightButton( keyDown );
             }
          }
       } else

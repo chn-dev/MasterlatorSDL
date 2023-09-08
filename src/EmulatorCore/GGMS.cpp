@@ -85,18 +85,22 @@ GGMS::GGMS()
 }
 
 
-GGMS *GGMS::create( const char *fname )
+GGMS *GGMS::create( const char *fname, bool debug )
 {
    GGMS *pMachine = new GGMS();
 
+   pMachine->m_debug = debug;
+
    /* Attempt to load the ROM */
    pMachine->m_romsize = fsize( fname );
+   pMachine->m_ramsize = 16384;
+   pMachine->m_sramsize = 32768;
 
    if( pMachine->m_romsize == (unsigned int)-1 )
       return( 0 );
 
-   pMachine->m_pRAM  = (u8*)calloc( 16384, 1 );
-   pMachine->m_pSRAM = (u8*)calloc( 32768, 1 );
+   pMachine->m_pRAM  = (u8*)calloc( pMachine->m_ramsize, 1 );
+   pMachine->m_pSRAM = (u8*)calloc( pMachine->m_sramsize, 1 );
    pMachine->m_pROM  = (u8*)calloc( pMachine->m_romsize, 1 );
    pMachine->m_pCPU  = Z80::create( pMachine );
    pMachine->m_pVDP  = GGVDP::create();
@@ -733,7 +737,17 @@ void GGMS::z80_out( u8 loc, u8 d )
 }
 
 
-u8 GGMS::z80_readMem( u16 loc )
+void GGMS::z80_exec( u16 loc )
+{
+   if( m_debug )
+   {
+      u8 *pPage = m_pPages[loc >> 10];
+      u16 ofs = loc & 0x3ff;
+   }
+}
+
+
+u8 GGMS::z80_readMem( u16 loc ) const
 {
    return( m_pPages[loc >> 10][loc & 0x3ff] );
 }
@@ -784,4 +798,10 @@ void GGMS::z80_writeMem( u16 loc, u8 d )
          }
       }
    }
+}
+
+
+Z80 *GGMS::cpu() const
+{
+   return( m_pCPU );
 }

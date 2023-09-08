@@ -4,6 +4,7 @@
 #include "CommandLine.h"
 #include "EmulatorCore/GGMS.h"
 
+bool isKeyPressed( SDL_Keycode keyCode );
 bool initSDL( GGMS *pMachine, const Config *pConfig );
 bool runSDL( GGMS *pMachine, const Config *pConfig, u8 *pScreenBuffer, Uint32 *pPalette );
 void quitSDL();

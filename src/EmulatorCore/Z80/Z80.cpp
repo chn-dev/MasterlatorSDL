@@ -251,6 +251,39 @@ int Z80::execInterrupt()
    return( 0 );
 }
 
+
+u16 Z80::getPC() const
+{
+   return( m_PC.aword );
+}
+
+
+std::vector<std::string> Z80::disassemble( u16 loc, int nInstructions, int *s )
+{
+   std::vector<std::string> result;
+
+   for( int i = 0; i < nInstructions; i++ )
+   {
+      char dest[256];
+      u8 op[8];
+
+      for( u16 i = 0; i < 8; i++ )
+      {
+         op[i] = m_pInterface->z80_readMem( loc + i );
+      }
+
+      int size = disassemble( op, dest );
+      loc += size;
+
+      if( s )
+         *s += size;
+
+      result.push_back( dest );
+   }
+
+   return( result );
+}
+
 int Z80::disassemble( u8 *op, char *dest )
 {
    const char *inst;
@@ -445,6 +478,9 @@ int Z80::run( int c )
       {
          union_dword t, tt, t2;
          union_word  dw;
+
+         m_pInterface->z80_exec( m_PC.aword );
+
 /*         char dasm[16];
          u8 d[6];
          for( int i = 0; i < sizeof( d ); i++ )

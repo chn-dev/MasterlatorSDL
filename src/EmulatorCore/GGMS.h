@@ -13,7 +13,9 @@ class GGMS : public Z80_Interface
 public:
    virtual ~GGMS();
 
-   static GGMS *create( const char *fname );
+   static GGMS *create( const char *fname, bool debug );
+
+   Z80 *cpu() const;
 
    void reset();
 
@@ -42,8 +44,9 @@ public:
 
    virtual u8 z80_in( u8 loc );
    virtual void z80_out( u8 loc, u8 d );
-   virtual u8 z80_readMem( u16 loc );
+   virtual u8 z80_readMem( u16 loc ) const;
    virtual void z80_writeMem( u16 loc, u8 d );
+   virtual void z80_exec( u16 loc );
 
 private:
    GGMS();
@@ -53,13 +56,21 @@ private:
    u8 *getReadPage( int page );
    int addy2ROM( u16 );
 
+   bool          m_debug;
+
    Z80          *m_pCPU;
    GGVDP        *m_pVDP;
    SN76489      *m_pSND;
+
    u8           *m_pROM;
-   u8           *m_pRAM;
-   u8           *m_pSRAM;
    unsigned int  m_romsize;
+
+   u8           *m_pRAM;
+   unsigned int  m_ramsize;
+
+   u8           *m_pSRAM;
+   unsigned int  m_sramsize;
+
    bool          m_jap;      /* TRUE if japanese, FALSE if european/american */
    u8            m_countrydetect; /* Used as a temporary buffer */
    u8            m_memcontrol;

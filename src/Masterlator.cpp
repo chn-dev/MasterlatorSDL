@@ -1,3 +1,4 @@
+#include <sdl.h>
 #include "CommandLine.h"
 #include "ArchSDL.h"
 
@@ -24,7 +25,7 @@ int main( int argc, char *argv[] )
    }
 
    printf( "Loading ROM %s\n", config.romFile.c_str() );
-   GGMS *pMachine = GGMS::create( config.romFile.c_str() );
+   GGMS *pMachine = GGMS::create( config.romFile.c_str(), config.debug );
    if( !pMachine )
    {
       fprintf( stderr, "Couldn't load ROM from %s\n", config.romFile.c_str() );
@@ -92,6 +93,11 @@ int main( int argc, char *argv[] )
          config.screenBufferWidth, config.screenBufferHeight,
          config.debug ? ( config.screenBufferWidth - FRAME_W ) + ( FRAME_W - pMachine->screenWidth() ) / 2 : 0,
          config.debug ? ( FRAME_H - pMachine->screenHeight() ) / 2 : 0 );
+
+      if( config.debug )
+      {
+
+      }
 
       for( int i = 0; i < 32; i++ )
       {

@@ -4,6 +4,8 @@
 #define __Z80_H__
 
 #include "../defines.h"
+#include <string>
+#include <vector>
 
 #define FLAG_C    0x01
 #define FLAG_N    0x02
@@ -23,8 +25,9 @@ public:
    virtual ~Z80_Interface() = 0;
    virtual u8 z80_in( u8 loc ) = 0;
    virtual void z80_out( u8 loc, u8 d ) = 0;
-   virtual u8 z80_readMem( u16 loc ) = 0;
+   virtual u8 z80_readMem( u16 loc ) const = 0;
    virtual void z80_writeMem( u16 loc, u8 d ) = 0;
+   virtual void z80_exec( u16 loc ) = 0;
 };
 
 
@@ -40,6 +43,8 @@ public:
    
    int saveState( u8 *d );
    int loadState( u8 *d );
+   std::vector<std::string> disassemble( u16 loc, int nInstructions, int *s );
+   u16 getPC() const;
 
 private:
    Z80( Z80_Interface *pInterface );
