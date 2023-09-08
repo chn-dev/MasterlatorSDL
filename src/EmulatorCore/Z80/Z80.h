@@ -34,20 +34,34 @@ public:
 class Z80
 {
 public:
+   class Z80_Instruction
+   {
+   public:
+      u16 address;
+      std::vector<u8> code;
+      std::string disassembly;
+
+      std::string toString() const;
+      bool operator==( const Z80_Instruction &other ) const;
+      bool operator!=( const Z80_Instruction &other ) const;
+   };
+
    ~Z80();
    static Z80 *create( Z80_Interface *pInterface );
    void reset();
    void interrupt( u16 );
    void clearINT();
    int run( int );
-   
+
    int saveState( u8 *d );
    int loadState( u8 *d );
-   std::vector<std::string> disassemble( u16 loc, int nInstructions, int *s );
+   std::vector<Z80_Instruction> disassemble( u16 loc, int beforeInstr, int afterInstr );
    u16 getPC() const;
 
 private:
    Z80( Z80_Interface *pInterface );
+   std::vector<Z80_Instruction> disassemble( u16 loc, int nInstructions );
+   std::vector<Z80_Instruction> disassemble( u16 loc, int nInstructions, int *s );
    int illegalInstruction();
    int execInterrupt();
    int disassemble( u8 *op, char *dest );

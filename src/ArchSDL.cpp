@@ -17,7 +17,7 @@ static void mixcallback( void *userdata, Uint8 *stream, int len )
 {
 //   Uint16 tmpStream[len / 2];
    GGMS *pMachine = (GGMS *)userdata;
-   pMachine->renderAudio( stream, len / 2, 44100 );
+//   pMachine->renderAudio( stream, len / 2, 44100 );
 //   memcpy( stream, tmpStream, len );
 }
 
@@ -85,7 +85,7 @@ bool initSDL( GGMS *pMachine, const Config *pConfig )
 
    if( audioDeviceId > 0 )
    {
-      SDL_PauseAudioDevice( audioDeviceId, 0 );
+//      SDL_PauseAudioDevice( audioDeviceId, 0 );
    }
 
    return( true );
@@ -153,25 +153,13 @@ bool runSDL( GGMS *pMachine, const Config *pConfig, u8 *pScreenBuffer, Uint32 *p
                   printf( "%04x - %s\n", loc, d.c_str() );
                   loc += s;
                }*/
-               int x = 0;
-               for( int i = 1; i < 256; i++ )
+               std::vector<Z80::Z80_Instruction> instr = pMachine->cpu()->disassemble( loc, 10, 10 );
+               printf( "%d\n", instr.size() );
+               for( int i = 0; i < instr.size(); i++ )
                {
-                  int s = 0;
-                  std::vector<std::string> d = pMachine->cpu()->disassemble( loc - i, 10, &s );
-
-                  if( loc - i + s == loc )
-                  {
-                     x++;
-                     printf( "* %d - %d instructions %d\n", x, d.size(), -i );
-                     for( int j = 0; j < d.size(); j++ )
-                     {
-                        printf( "%s\n", d[j].c_str() );
-                     }
-                     printf("\n");
-                  }
+                  printf( "%s\n", instr[i].toString().c_str() );
                }
-               printf( "========\n");
-
+               printf("\n");
             }
 
             if( keyCode == pConfig->aKey )
