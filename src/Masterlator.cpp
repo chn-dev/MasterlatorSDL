@@ -1,4 +1,4 @@
-#include <sdl.h>
+#include <SDL.h>
 #include "CommandLine.h"
 #include "ArchSDL.h"
 
