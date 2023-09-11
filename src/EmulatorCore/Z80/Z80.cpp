@@ -14,7 +14,7 @@
 /* #include "Z80_instructions.h" */
 
 
-bool Z80::Z80_Instruction::operator==( const Z80_Instruction &other ) const
+bool Z80::Instruction::operator==( const Z80::Instruction &other ) const
 {
    if( address != other.address ||
        code != other.code )
@@ -24,13 +24,13 @@ bool Z80::Z80_Instruction::operator==( const Z80_Instruction &other ) const
 }
 
 
-bool Z80::Z80_Instruction::operator!=( const Z80_Instruction &other ) const
+bool Z80::Instruction::operator!=( const Z80::Instruction &other ) const
 {
-   return( ! operator==(other ) );
+   return( ! operator==( other ) );
 }
 
 
-std::string Z80::Z80_Instruction::toString() const
+std::string Z80::Instruction::toString() const
 {
    std::string sCode;
    char tst[256];
@@ -47,7 +47,7 @@ std::string Z80::Z80_Instruction::toString() const
          bytes.append( " " );
    }
 
-   while( bytes.size() < 12 )
+   while( bytes.size() < 11 )
       bytes.append( " " );
    sCode.append( bytes );
 
@@ -58,12 +58,12 @@ std::string Z80::Z80_Instruction::toString() const
 }
 
 
-Z80_Interface::~Z80_Interface()
+Z80::Interface::~Interface()
 {
 }
 
 
-Z80::Z80( Z80_Interface *pInterface )
+Z80::Z80( Z80::Interface *pInterface )
 {
    reset();
    m_pInterface = pInterface;
@@ -116,7 +116,7 @@ void Z80::reset()
 }
 
 
-Z80 *Z80::create( Z80_Interface *pInterface )
+Z80 *Z80::create( Z80::Interface *pInterface )
 {
    Z80 *pCpu = new Z80( pInterface );
 
@@ -296,15 +296,57 @@ int Z80::execInterrupt()
 }
 
 
-u16 Z80::getPC() const
+union_word Z80::getAF() const
 {
-   return( m_PC.aword );
+   return( m_AF );
 }
 
 
-std::vector<Z80::Z80_Instruction> Z80::disassemble( u16 loc, int beforeInstr, int afterInstr )
+union_word Z80::getBC() const
 {
-   std::vector<Z80::Z80_Instruction> result;
+   return( m_BC );
+}
+
+
+union_word Z80::getDE() const
+{
+   return( m_DE );
+}
+
+
+union_word Z80::getHL() const
+{
+   return( m_HL );
+}
+
+
+union_word Z80::getSP() const
+{
+   return( m_SP );
+}
+
+
+union_word Z80::getIX() const
+{
+   return( m_IX );
+}
+
+
+union_word Z80::getIY() const
+{
+   return( m_IY );
+}
+
+
+union_word Z80::getPC() const
+{
+   return( m_PC );
+}
+
+
+std::vector<Z80::Z80::Instruction> Z80::disassemble( u16 loc, int beforeInstr, int afterInstr )
+{
+   std::vector<Z80::Instruction> result;
    int x = 0;
    do
    {
@@ -314,7 +356,7 @@ std::vector<Z80::Z80_Instruction> Z80::disassemble( u16 loc, int beforeInstr, in
 
    if( result.size() > beforeInstr )
    {
-      result = std::vector<Z80_Instruction>( result.begin() + ( result.size() - beforeInstr ), result.end() );
+      result = std::vector<Z80::Instruction>( result.begin() + ( result.size() - beforeInstr ), result.end() );
    }
 
    for( int i = 0; i < afterInstr + 1; i++ )
@@ -327,7 +369,7 @@ std::vector<Z80::Z80_Instruction> Z80::disassemble( u16 loc, int beforeInstr, in
 
       char dest[256];
       int s = disassemble( op, dest );
-      Z80_Instruction instruction;
+      Z80::Instruction instruction;
       instruction.address = loc;
       instruction.disassembly = dest;
       for( int j = 0; j < s; j++ )
@@ -342,15 +384,16 @@ std::vector<Z80::Z80_Instruction> Z80::disassemble( u16 loc, int beforeInstr, in
 }
 
 
-std::vector<Z80::Z80_Instruction> Z80::disassemble( u16 loc, int nInstructions )
+std::vector<Z80::Instruction> Z80::disassemble( u16 loc, int nInstructions )
 {
-   std::vector<std::vector<Z80_Instruction> > result;
-   std::vector<Z80_Instruction> d;
+   std::vector<std::vector<Z80::Instruction> > result;
+   std::vector<Z80::Instruction> d;
 
-   for( int i = 1; i < 1024; i++ )
+   int ss = 4 * ( nInstructions + 2 );
+   for( int i = 1; i < ss; i++ )
    {
       int s = 0;
-      std::vector<Z80::Z80_Instruction> d = disassemble( loc - i, nInstructions, &s );
+      std::vector<Z80::Instruction> d = disassemble( loc - i, nInstructions, &s );
 
       if( loc - i + s == loc )
       {
@@ -380,7 +423,7 @@ std::vector<Z80::Z80_Instruction> Z80::disassemble( u16 loc, int nInstructions )
          }
       }
 
-      d = std::vector<Z80_Instruction>( result[0].begin() + start, result[0].end() );
+      d = std::vector<Z80::Instruction>( result[0].begin() + start, result[0].end() );
    } else
    {
       d = result[0];
@@ -390,9 +433,9 @@ std::vector<Z80::Z80_Instruction> Z80::disassemble( u16 loc, int nInstructions )
 }
 
 
-std::vector<Z80::Z80_Instruction> Z80::disassemble( u16 loc, int nInstructions, int *s )
+std::vector<Z80::Instruction> Z80::disassemble( u16 loc, int nInstructions, int *s )
 {
-   std::vector<Z80_Instruction> result;
+   std::vector<Z80::Instruction> result;
 
    for( int i = 0; i < nInstructions; i++ )
    {
@@ -406,7 +449,7 @@ std::vector<Z80::Z80_Instruction> Z80::disassemble( u16 loc, int nInstructions, 
 
       int size = disassemble( op, dest );
 
-      Z80_Instruction instruction;
+      Z80::Instruction instruction;
       instruction.disassembly = dest;
       instruction.address = loc;
       for( int j = 0; j < size; j++ )
@@ -583,55 +626,65 @@ int Z80::loadState( u8 *d )
 }
 
 
-int Z80::run( int c )
-{ /*  Run at least c cycles */
-
-   int i = 0, x = 0;
-
-/*      x = Z80_ExecInt ( cpu );
-      if (x!=-1)
-        i += x;*/
+int Z80::step()
+{
+   int i = 0;
 
    i += execInterrupt();
 
    if( ( cpu_IFF & 0x80 ) && ( m_eicount <= 0 ) )
-      return( c );
+      return( -1 );
 
-   while( i < c )
+   /*  Any pending interrupts ? */
+   m_R++;
+
+   if( m_eicount > 0 )
    {
-      /*  Any pending interrupts ? */
-      m_R++;
-
-      if( m_eicount > 0 )
+      if( !--m_eicount )
       {
-         if (!--m_eicount)
-         {
-            cpu_IFF |= 0x03;
-            m_eicount = -1;
-            i += execInterrupt();
-         }
-      }
-
-      if( cpu_IFF & 0x80 )
-      {
-         i +=  4;
-      } else
-      {
-         union_dword t, tt, t2;
-         union_word  dw;
-
-         m_pInterface->z80_exec( m_PC.aword );
-
-/*         char dasm[16];
-         u8 d[6];
-         for( int i = 0; i < sizeof( d ); i++ )
-            d[i] = read(cpu_getPC + i);
-         disassemble( &d[0], &dasm[0] );
-         printf("PC=%04x [%02x %02x %02x %02x] AF=%04x BC=%04x DE=%04x HL=%04x SP=%04x IX=%04x IY=%04x - %s\n", cpu_getPC, d[0], d[1], d[2], d[3], cpu_getAF, cpu_getBC, cpu_getDE, cpu_getHL, cpu_getSP, cpu_getIX, cpu_getIY, &dasm[0]);*/
-#define CYCLES(a) i += a
-#include "decode.h"
+         cpu_IFF |= 0x03;
+         m_eicount = -1;
+         i += execInterrupt();
       }
    }
 
-   return( x );
+   if( cpu_IFF & 0x80 )
+   {
+      i += 4;
+   } else
+   {
+      union_dword t, tt, t2;
+      union_word  dw;
+
+      m_pInterface->z80_exec( m_PC.aword );
+
+      /*         char dasm[16];
+               u8 d[6];
+               for( int i = 0; i < sizeof( d ); i++ )
+                  d[i] = read(cpu_getPC + i);
+               disassemble( &d[0], &dasm[0] );
+               printf("PC=%04x [%02x %02x %02x %02x] AF=%04x BC=%04x DE=%04x HL=%04x SP=%04x IX=%04x IY=%04x - %s\n", cpu_getPC, d[0], d[1], d[2], d[3], cpu_getAF, cpu_getBC, cpu_getDE, cpu_getHL, cpu_getSP, cpu_getIX, cpu_getIY, &dasm[0]);*/
+#define CYCLES(a) i += a
+#include "decode.h"
+   }
+
+   return( i );
+}
+
+
+int Z80::run( int c )
+{ /*  Run at least c cycles */
+
+   int i = 0;
+
+   while( i < c )
+   {
+      int cycles = step();
+      if( cycles < 0 )
+         return( c );
+
+      i += cycles;
+   }
+
+   return( i );
 }

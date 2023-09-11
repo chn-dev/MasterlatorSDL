@@ -12,6 +12,7 @@
 
 extern int debug;
 
+#define CYCLES_PER_LINE /*227*/253
 
 static u8 *readFile(const char *fname, int *size)
 {
@@ -89,6 +90,7 @@ GGMS *GGMS::create( const char *fname, bool debug )
 {
    GGMS *pMachine = new GGMS();
 
+   pMachine->m_cyclesPerLine = CYCLES_PER_LINE;
    pMachine->m_debug = debug;
 
    /* Attempt to load the ROM */
@@ -301,6 +303,8 @@ void GGMS::updateAllPages()
 
 void GGMS::reset()
 {
+   m_cyclesPerLine = CYCLES_PER_LINE;
+
    for( int i = 0; i < 8; i++ )
    {
       m_p1_keys[i] = 1;
@@ -332,6 +336,50 @@ void GGMS::reset()
 }
 
 
+bool GGMS::singleInstructionStep( u8 *pDisplayBuffer, int displayBufferWidth, int displayBufferHeight, int displayBufferXOfs, int displayBufferYOfs )
+{
+   bool finishedFrame = false;
+
+   int cpuCycles = m_pCPU->step();
+   m_cyclesPerLine -= cpuCycles;
+
+   if( m_cyclesPerLine <= 0 )
+   {
+      while( m_cyclesPerLine <= 0 )
+         m_cyclesPerLine += CYCLES_PER_LINE;
+
+      if( m_pause )
+      {
+         /* Pause button */
+         m_pCPU->interrupt( Z80_NMI );
+         m_pause = 0;
+      }
+
+      int cycleResult = m_pVDP->cycle( pDisplayBuffer, displayBufferWidth, displayBufferHeight, displayBufferXOfs, displayBufferYOfs );
+      if( cycleResult & GGVDP_CYCLE_IRQ )
+      {
+         m_pCPU->interrupt( 0x38 );
+      }
+
+      finishedFrame = ( cycleResult & GGVDP_CYCLE_FINISHEDFRAME ) != 0;
+
+      if( finishedFrame )
+      {
+         if( m_pVDP->paletteChanged() )
+         {
+            /* Set palette */
+            for( int i = 0; i < 32; i++ )
+            {
+               m_Palette[i] = m_pVDP->getColor( i );
+            }
+         }
+      }
+   }
+
+   return( finishedFrame );
+}
+
+
 bool GGMS::run( u8 *pDisplayBuffer, int displayBufferWidth, int displayBufferHeight, int displayBufferXOfs, int displayBufferYOfs )
 {
    if( m_pause )
@@ -341,7 +389,11 @@ bool GGMS::run( u8 *pDisplayBuffer, int displayBufferWidth, int displayBufferHei
       m_pause = 0;
    }
 
-   m_pCPU->run( /*227*/253 );
+   int cpuCycles = m_pCPU->run( m_cyclesPerLine );
+   m_cyclesPerLine -= cpuCycles;
+   while( m_cyclesPerLine <= 0 )
+      m_cyclesPerLine += CYCLES_PER_LINE;
+
    int cycleResult = m_pVDP->cycle( pDisplayBuffer, displayBufferWidth, displayBufferHeight, displayBufferXOfs, displayBufferYOfs );
    if( cycleResult & GGVDP_CYCLE_IRQ )
    {
@@ -804,4 +856,10 @@ void GGMS::z80_writeMem( u16 loc, u8 d )
 Z80 *GGMS::cpu() const
 {
    return( m_pCPU );
+}
+
+
+GGVDP *GGMS::vdp() const
+{
+   return( m_pVDP );
 }

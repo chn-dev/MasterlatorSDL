@@ -24,7 +24,7 @@ typedef struct Config
    SDL_Keycode downKey = SDLK_DOWN;
    SDL_Keycode leftKey = SDLK_LEFT;
    SDL_Keycode rightKey = SDLK_RIGHT;
-};
+} Config;
 
 int readCommandLine( int argc, char *argv[], Config *pConfig );
 

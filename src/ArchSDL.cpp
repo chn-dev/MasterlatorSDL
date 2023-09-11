@@ -1,4 +1,5 @@
 #include <set>
+#include <map>
 
 #include "ArchSDL.h"
 #include <SDL.h>
@@ -10,7 +11,30 @@ static SDL_Surface *pRenderSurface = 0;
 static SDL_AudioDeviceID audioDeviceId = -1;
 
 static bool quit = false;
-static std::set<SDL_Keycode> keyMap;
+static std::map<SDL_Keycode, Uint64> keyMap;
+
+static std::set<SDL_Keycode> keyPressed;
+static std::set<SDL_Keycode> keyReleased;
+
+static Screen screen;
+
+
+Screen *getScreen()
+{
+   return( &screen );
+}
+
+
+bool keyHasBeenPressed( SDL_Keycode keyCode )
+{
+   return( keyPressed.find( keyCode ) != keyPressed.end() );
+}
+
+
+bool keyHasBeenReleased( SDL_Keycode keyCode )
+{
+   return( keyReleased.find( keyCode ) != keyReleased.end() );
+}
 
 
 static void mixcallback( void *userdata, Uint8 *stream, int len )
@@ -88,15 +112,32 @@ bool initSDL( GGMS *pMachine, const Config *pConfig )
 //      SDL_PauseAudioDevice( audioDeviceId, 0 );
    }
 
+   screen.pBuffer = new u8[pConfig->screenBufferWidth * pConfig->screenBufferHeight];
+   screen.width = pConfig->screenBufferWidth;
+   screen.height = pConfig->screenBufferHeight;
+
    return( true );
 }
 
 
 static void setKeyPressed( SDL_Keycode keyCode, bool pressed )
 {
-   keyMap.erase( keyCode );
-   if( pressed )
-      keyMap.insert( keyCode );
+   if( pressed && !isKeyPressed( keyCode ) )
+      keyPressed.insert( keyCode );
+   else
+   if( !pressed && isKeyPressed( keyCode ) )
+      keyReleased.insert( keyCode );
+
+   if( !pressed )
+   {
+      keyMap.erase( keyCode );
+   } else
+   {
+      if( keyMap.find( keyCode ) == keyMap.end() )
+      {
+         keyMap[keyCode] = SDL_GetTicks64();
+      }
+   }
 }
 
 
@@ -106,9 +147,13 @@ bool isKeyPressed( SDL_Keycode keyCode )
 }
 
 
-bool runSDL( GGMS *pMachine, const Config *pConfig, u8 *pScreenBuffer, Uint32 *pPalette )
+bool runSDL( GGMS *pMachine, const Config *pConfig )
 {
    SDL_Event e;
+
+   keyPressed.clear();
+   keyReleased.clear();
+
    while( SDL_PollEvent( &e ) )
    {
       if( e.type == SDL_KEYDOWN || e.type == SDL_KEYUP)
@@ -135,31 +180,6 @@ bool runSDL( GGMS *pMachine, const Config *pConfig, u8 *pScreenBuffer, Uint32 *p
                   SDL_SetWindowFullscreen( pWindow, isFull ? 0 : SDL_WINDOW_FULLSCREEN_DESKTOP );
                   SDL_ShowCursor( isFull );
                }
-            }
-
-            if( keyDown && keyCode == SDLK_d )
-            {
-               u16 loc = pMachine->cpu()->getPC();
-               printf( "PC = %04x\n", loc );
-/*               for( int i = 0; i < 16; i++ )
-               {
-                  int s = 0;
-                  std::string d = pMachine->cpu()->disassemble( loc, &s );
-                  if( loc == pMachine->cpu()->getPC() )
-                     printf( "*" );
-                  else
-                     printf( " " );
-
-                  printf( "%04x - %s\n", loc, d.c_str() );
-                  loc += s;
-               }*/
-               std::vector<Z80::Z80_Instruction> instr = pMachine->cpu()->disassemble( loc, 10, 10 );
-               printf( "%d\n", instr.size() );
-               for( int i = 0; i < instr.size(); i++ )
-               {
-                  printf( "%s\n", instr[i].toString().c_str() );
-               }
-               printf("\n");
             }
 
             if( keyCode == pConfig->aKey )
@@ -258,9 +278,10 @@ bool runSDL( GGMS *pMachine, const Config *pConfig, u8 *pScreenBuffer, Uint32 *p
    int surfaceHeight = pSurface->h;
 
    SDL_LockSurface( pRenderSurface );
-   for( int i = 0; i < pConfig->screenBufferWidth * pConfig->screenBufferHeight; i++ )
+   for( int i = 0; i < getScreen()->width * getScreen()->height; i++ )
    {
-      ( (Uint32 *)pRenderSurface->pixels )[i] = pPalette[pScreenBuffer[i]];
+      ( (Uint32 *)pRenderSurface->pixels )[i] = getScreen()->pal[getScreen()->pBuffer[i]];
+      getScreen()->pBuffer[i] = 0;
    }
    SDL_UnlockSurface( pRenderSurface );
 
@@ -269,8 +290,8 @@ bool runSDL( GGMS *pMachine, const Config *pConfig, u8 *pScreenBuffer, Uint32 *p
    SDL_Rect srcRect;
    srcRect.x = 0;
    srcRect.y = 0;
-   srcRect.w = pConfig->screenBufferWidth;
-   srcRect.h = pConfig->screenBufferHeight;
+   srcRect.w = getScreen()->width;
+   srcRect.h = getScreen()->height;
    SDL_Rect dstRect;
    dstRect.x = 0;
    dstRect.y = 0;
@@ -282,8 +303,8 @@ bool runSDL( GGMS *pMachine, const Config *pConfig, u8 *pScreenBuffer, Uint32 *p
       int w = dstRect.w;
       int h = dstRect.h;
 
-      int w2 = ar * h;
-      int h2 = w / ar;
+      int w2 = (int)( ar * h );
+      int h2 = (int)( w / ar );
 
       if( w2 > surfaceWidth )
       {
@@ -325,6 +346,8 @@ void quitSDL()
    {
       SDL_GameControllerClose( pGameController );
    }
+
+   delete screen.pBuffer;
 
    SDL_Quit();
 }

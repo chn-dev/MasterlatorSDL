@@ -8,7 +8,7 @@
 #include "crc32.h"
 #include "defines.h"
 
-class GGMS : public Z80_Interface
+class GGMS : public Z80::Interface
 {
 public:
    virtual ~GGMS();
@@ -16,10 +16,12 @@ public:
    static GGMS *create( const char *fname, bool debug );
 
    Z80 *cpu() const;
+   GGVDP *vdp() const;
 
    void reset();
 
    void renderFrame( u8 *pDisplayBuffer, int displayBufferWidth, int displayBufferHeight, int displayBufferXOfs, int displayBufferYOfs );
+   bool singleInstructionStep( u8 *pDisplayBuffer, int displayBufferWidth, int displayBufferHeight, int displayBufferXOfs, int displayBufferYOfs );
    void renderAudio( void *pBuffer, int numSamples, int freq );
 
    int loadSRAM( const char * );
@@ -86,6 +88,7 @@ private:
    u32           m_CRC32;
    int           m_pause;
    GGVDP::Color  m_Palette[32];
+   int           m_cyclesPerLine;
 };
 
 #endif
