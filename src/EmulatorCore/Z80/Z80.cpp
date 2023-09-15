@@ -426,6 +426,7 @@ std::vector<Z80::Instruction> Z80::disassemble( u16 loc, int nInstructions )
       d = std::vector<Z80::Instruction>( result[0].begin() + start, result[0].end() );
    } else
    {
+      // TODO if result.size() == 0
       d = result[0];
    }
 

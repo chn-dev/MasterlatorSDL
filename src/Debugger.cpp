@@ -31,6 +31,7 @@ void Debugger::enable( bool en )
    if( m_Enabled == en )
       return;
 
+   m_CursorPosition = m_pMachine->cpu()->getPC().aword;
    if( !m_Enabled && en )
    {
       updateDisassembly();
@@ -102,7 +103,7 @@ bool Debugger::doDebug( u8 *pScreenBuffer )
       std::string s = tmp;
 
       print8x8( getScreen(), 10, 100 + ( i * 10 ), 129,
-         m_pMachine->cpu()->getPC().aword == m_Disassembly[i].address,
+         m_CursorPosition == m_Disassembly[i].address,
          ( m_pMachine->cpu()->getPC().aword == m_Disassembly[i].address ? " >" : "  " ) + s + " - " + m_Disassembly[i].toString() );
    }
 
@@ -114,10 +115,30 @@ bool Debugger::doDebug( u8 *pScreenBuffer )
    } else
    if( keyHasBeenPressed( SDLK_UP ) )
    {
+      for( int i = 0; i < m_Disassembly.size(); i++ )
+      {
+         if( m_CursorPosition == m_Disassembly[i].address )
+         {
+            m_CursorPosition = m_Disassembly[i - 1].address;
+            printf( "%d %d\n", m_Disassembly.size(), i );
+            break;
+         }
+      }
+      updateDisassembly();
       printf( "UP\n" );
    } else
    if( keyHasBeenPressed( SDLK_DOWN ) )
    {
+      for( int i = 0; i < m_Disassembly.size(); i++ )
+      {
+         if( m_CursorPosition == m_Disassembly[i].address )
+         {
+            m_CursorPosition = m_Disassembly[i + 1].address;
+            printf( "%d %d\n", m_Disassembly.size(), i );
+            break;
+         }
+      }
+      updateDisassembly();
       printf( "DOWN\n" );
    }
 
@@ -127,15 +148,13 @@ bool Debugger::doDebug( u8 *pScreenBuffer )
 
 void Debugger::updateDisassembly( int nInstructions, int cursorPos )
 {
-   u16 loc = m_pMachine->cpu()->getPC().aword;
-   m_Disassembly = m_pMachine->cpu()->disassemble( loc, cursorPos, nInstructions - cursorPos - 1 );
+   m_Disassembly = m_pMachine->cpu()->disassemble( m_CursorPosition, cursorPos, nInstructions - cursorPos - 1 );
 }
 
 
 void Debugger::updateDisassembly()
 {
-   m_CursorPosition = m_pMachine->cpu()->getPC().aword;
-   updateDisassembly( NINSTRUCTIONS, ( NINSTRUCTIONS - 1 ) / 2 );
+    updateDisassembly( NINSTRUCTIONS, ( NINSTRUCTIONS - 1 ) / 2 );
 }
 
 
