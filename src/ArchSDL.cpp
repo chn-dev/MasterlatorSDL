@@ -350,7 +350,7 @@ bool runSDL( GGMS *pMachine, const Config *pConfig, u8 clearColor )
          }
       } else
       {
-         if( diff >= 50 )
+         if( diff >= 20 )
          {
             keyMap[v.first].nRepeat++;
             keyMap[v.first].nTicks = now;

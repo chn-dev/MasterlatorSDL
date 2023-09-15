@@ -32,6 +32,7 @@ void Debugger::enable( bool en )
       return;
 
    m_CursorPosition = m_pMachine->cpu()->getPC().aword;
+   m_CursorPosition = 0x340;
    if( !m_Enabled && en )
    {
       updateDisassembly();
@@ -140,6 +141,18 @@ bool Debugger::doDebug( u8 *pScreenBuffer )
       }
       updateDisassembly();
       printf( "DOWN\n" );
+   } else
+   if( keyHasBeenPressed( SDLK_PAGEUP ) )
+   {
+      m_CursorPosition = m_Disassembly[0].address;
+      updateDisassembly();
+      printf( "PG UP\n" );
+   } else
+   if( keyHasBeenPressed( SDLK_PAGEDOWN ) )
+   {
+      m_CursorPosition = m_Disassembly[m_Disassembly.size() - 1].address;
+      updateDisassembly();
+      printf( "PG DOWN\n" );
    }
 
    return( screenBlank );

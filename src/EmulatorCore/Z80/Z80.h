@@ -70,6 +70,10 @@ private:
    Z80( Z80::Interface *pInterface );
    std::vector<Z80::Instruction> disassemble( u16 loc, int nInstructions );
    std::vector<Z80::Instruction> disassemble( u16 loc, int nInstructions, int *s );
+
+   std::vector<Z80::Instruction> disassembleFromToAddress( u16 startLoc, u16 endLoc );
+   Z80::Instruction disassemble( u16 loc );
+
    int illegalInstruction();
    int execInterrupt();
    int disassemble( u8 *op, char *dest );

@@ -392,12 +392,23 @@ std::vector<Z80::Instruction> Z80::disassemble( u16 loc, int nInstructions )
    int ss = 4 * ( nInstructions + 2 );
    for( int i = 1; i < ss; i++ )
    {
-      int s = 0;
-      std::vector<Z80::Instruction> d = disassemble( loc - i, nInstructions, &s );
+//      int s = 0;
+//      std::vector<Z80::Instruction> d = disassemble( loc - i, nInstructions, &s );
+      std::vector<Z80::Instruction> d2 = disassembleFromToAddress( loc - i, loc );
+      if( d2.size() > nInstructions + 4 )
+         break;
 
-      if( loc - i + s == loc )
+      if( d2.size() >= nInstructions )
       {
-         result.push_back( d );
+         d2 = std::vector<Z80::Instruction>( d2.begin() + ( d2.size() - nInstructions ), d2.end() );
+         result.push_back( d2 );
+      }
+
+//      if( loc - i + s == loc )
+      {
+//         result.push_back( d );
+/*         for( int j = 0; j < d.size(); j++ )
+            printf( "%s\n", d[j].toString().c_str() );*/
       }
    }
 
@@ -423,7 +434,7 @@ std::vector<Z80::Instruction> Z80::disassemble( u16 loc, int nInstructions )
          }
       }
 
-      d = std::vector<Z80::Instruction>( result[0].begin() + start, result[0].end() );
+      d = std::vector<Z80::Instruction>( result[result.size() - 1].begin() + start, result[result.size() - 1].end() );
    } else
    {
       // TODO if result.size() == 0
@@ -434,35 +445,64 @@ std::vector<Z80::Instruction> Z80::disassemble( u16 loc, int nInstructions )
 }
 
 
+std::vector<Z80::Instruction> Z80::disassembleFromToAddress( u16 startLoc, u16 endLoc )
+{
+   std::vector<Z80::Instruction> result;
+
+   u16 loc = startLoc;
+   while( loc < endLoc )
+   {
+      Z80::Instruction instr = disassemble( loc );
+      result.push_back( instr );
+      loc += instr.code.size();
+   }
+
+   if( loc != endLoc )
+   {
+      result.clear();
+   }
+
+   return( result );
+}
+
+
+Z80::Instruction Z80::disassemble( u16 loc )
+{
+   char dest[256];
+   u8 op[8];
+
+   for( u16 j = 0; j < 8; j++ )
+   {
+      op[j] = m_pInterface->z80_readMem( loc + j );
+   }
+
+   int size = disassemble( op, dest );
+
+   Z80::Instruction instruction;
+   instruction.disassembly = dest;
+   instruction.address = loc;
+   for( int j = 0; j < size; j++ )
+   {
+      instruction.code.push_back( op[j] );
+   }
+
+   return( instruction );
+}
+
+
 std::vector<Z80::Instruction> Z80::disassemble( u16 loc, int nInstructions, int *s )
 {
    std::vector<Z80::Instruction> result;
 
    for( int i = 0; i < nInstructions; i++ )
    {
-      char dest[256];
-      u8 op[8];
+      Z80::Instruction instruction = disassemble( loc );;
 
-      for( u16 j = 0; j < 8; j++ )
-      {
-         op[j] = m_pInterface->z80_readMem( loc + j );
-      }
-
-      int size = disassemble( op, dest );
-
-      Z80::Instruction instruction;
-      instruction.disassembly = dest;
-      instruction.address = loc;
-      for( int j = 0; j < size; j++ )
-      {
-         instruction.code.push_back( op[j] );
-      }
-
-      loc += size;
-
+      loc += instruction.code.size();
       if( s )
-         *s += size;
-
+      {
+         *s += instruction.code.size();
+      }
       result.push_back( instruction );
    }
 
