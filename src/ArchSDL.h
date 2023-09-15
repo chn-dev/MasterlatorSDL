@@ -19,7 +19,7 @@ bool keyHasBeenReleased( SDL_Keycode keyCode );
 Screen *getScreen();
 
 bool initSDL( GGMS *pMachine, const Config *pConfig );
-bool runSDL( GGMS *pMachine, const Config *pConfig );
+bool runSDL( GGMS *pMachine, const Config *pConfig, u8 clearColor );
 void quitSDL();
 
 #endif

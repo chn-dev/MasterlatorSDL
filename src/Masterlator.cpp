@@ -2,6 +2,7 @@
 #include "Font.h"
 #include "CommandLine.h"
 #include "ArchSDL.h"
+#include "Debugger.h"
 
 #include <string>
 #include <stdio.h>
@@ -16,38 +17,6 @@
 #define FRAME_H (192+8)
 
 #define TICKS_FOR_NEXT_FRAME (1000 / 60)
-
-
-std::vector<Z80::Instruction> disassembly;
-u8 *pScreenBuffer;
-
-
-void dumpRegister( char *pDest, const char *pName, union_word reg )
-{
-   sprintf( pDest, "%s = %04xh = '%c%c' = %5du = %6di",
-            pName,
-            reg,
-            isprint( reg.abyte.high ) ? reg.abyte.high : ' ',
-            isprint( reg.abyte.low ) ? reg.abyte.low : ' ',
-            reg.aword,
-            (s16)reg.aword );
-}
-
-
-void updateDisassembly( GGMS *pMachine, int nInstructions, int cursorPos )
-{
-   u16 loc = pMachine->cpu()->getPC().aword;
-   disassembly = pMachine->cpu()->disassemble( loc, cursorPos, nInstructions - cursorPos - 1 );
-}
-
-
-bool singleInstructionStep( GGMS *pMachine, Config *pConfig )
-{
-   return( pMachine->singleInstructionStep(
-      pScreenBuffer,
-      pMachine->screenWidth(), pMachine->screenHeight(),
-      0, 0 ) );
-}
 
 
 int main( int argc, char *argv[] )
@@ -66,7 +35,7 @@ int main( int argc, char *argv[] )
       return( -1 );
    }
 
-   pScreenBuffer = new u8[pMachine->screenWidth() * pMachine->screenHeight()];
+   u8 *pScreenBuffer = new u8[pMachine->screenWidth() * pMachine->screenHeight()];
 
    config.screenBufferWidth = pMachine->screenWidth();
    config.screenBufferHeight = pMachine->screenHeight();
@@ -123,109 +92,71 @@ int main( int argc, char *argv[] )
    printf( "Window width = %d\n", config.windowWidth );
    printf( "Window height = %d\n", config.windowHeight );
 
-   bool debugMode = false;
+   Debugger *pDebugger = new Debugger( pMachine );
 
    do
    {
       bool screenBlank = false;
 
-      if( !debugMode )
+      if( !pDebugger->isEnabled() )
       {
-         while( !singleInstructionStep( pMachine, &config ) );
+         //while( !singleInstructionStep( pMachine ) );
+         pMachine->renderFrame( pScreenBuffer, pMachine->screenWidth(), pMachine->screenHeight(), 0, 0 );
          screenBlank = true;
       }
 
       if( config.debug )
       {
-         if( keyHasBeenPressed( SDLK_d ) && !debugMode )
+         if( keyHasBeenPressed( SDLK_d ) && !pDebugger->isEnabled() )
          {
-            printf( "DEBUG %04x\n", pMachine->cpu()->getPC() );
-            debugMode = true;
-            updateDisassembly( pMachine, 31, 15 );
+            printf( "DEBUG %04x\n", pMachine->cpu()->getPC().aword );
+            pDebugger->enable( true );
          }
 
-         if( keyHasBeenPressed( SDLK_c ) && debugMode )
+         if( keyHasBeenPressed( SDLK_c ) && pDebugger->isEnabled() )
          {
             printf( "CONTINUE\n" );
-            debugMode = false;
+            pDebugger->enable( false );
          }
 
-         if( debugMode )
+         if( pDebugger->isEnabled() )
          {
-            union_word af = pMachine->cpu()->getAF();
-            u8 a = af.abyte.high;
-            u8 f = af.abyte.low;
-            char tmp[256];
-            char flags[256];
-            sprintf( flags, "%c%c%c%c%c%c%c%c",
-               f & FLAG_S ? 'S' : '-',
-               f & FLAG_Z ? 'Z' : '-',
-               f & FLAG_5 ? '5' : '-',
-               f & FLAG_H ? 'H' : '-',
-               f & FLAG_3 ? '3' : '-',
-               f & FLAG_PV ? 'V' : '-',
-               f & FLAG_N ? 'N' : '-',
-               f & FLAG_C ? 'C' : '-' );
-            sprintf( tmp, "A  =   %02xh =  '%c' = %5du = %6di", 
-               a, isprint( a ) ? a : ' ', a, (int)(s8)a );
-            print8x8( getScreen(), 10, 10, 129, false, tmp );
-
-            sprintf( tmp, "F  = %02xh = %s", f, flags );
-            print8x8( getScreen(), 320, 10, 129, false, tmp );
-
-            sprintf( tmp, "PC = %04xh", pMachine->cpu()->getPC().aword );
-            print8x8( getScreen(), 320, 20, 129, false, tmp );
-
-            sprintf( tmp, "SP = %04xh", pMachine->cpu()->getSP().aword );
-            print8x8( getScreen(), 320, 30, 129, false, tmp );
-
-            dumpRegister( tmp, "BC", pMachine->cpu()->getBC() );
-            print8x8( getScreen(), 10, 20, 129, false, tmp );
-
-            dumpRegister( tmp, "DE", pMachine->cpu()->getDE() );
-            print8x8( getScreen(), 10, 30, 129, false, tmp );
-
-            dumpRegister( tmp, "HL", pMachine->cpu()->getHL() );
-            print8x8( getScreen(), 10, 40, 129, false, tmp );
-
-            dumpRegister( tmp, "IX", pMachine->cpu()->getIX() );
-            print8x8( getScreen(), 10, 50, 129, false, tmp );
-
-            dumpRegister( tmp, "IY", pMachine->cpu()->getIY() );
-            print8x8( getScreen(), 10, 60, 129, false, tmp );
-
-            sprintf( tmp, "vcount = %d", pMachine->vdp()->vcount() );
-            print8x8( getScreen(), 10, 70, 129, false, tmp );
-
-            for( int i = 0; i < disassembly.size(); i++ )
-            {
-               print8x8( getScreen(), 10, 100 + ( i * 10 ), 129, pMachine->cpu()->getPC().aword == disassembly[i].address, disassembly[i].toString() );
-            }
-
-            if( keyHasBeenPressed( SDLK_F11 ) )
-            {
-               printf("1\n");
-               screenBlank = singleInstructionStep( pMachine, &config );
-               printf( "2\n" );
-               updateDisassembly( pMachine, 31, 15 );
-               printf( "3\n" );
-            }
+            screenBlank = pDebugger->doDebug( pScreenBuffer );
          }
       }
 
+      // Copy machine screen buffer to main application buffer
+      int xo = ( ( 256 - pMachine->screenWidth() ) / 2 ) + ( getScreen()->width - 256 ) - 10;
+      int yo = ( ( 192 - pMachine->screenHeight() ) / 2 ) + 10;
       for( int y = 0; y < pMachine->screenHeight(); y++ )
       {
          for( int x = 0; x < pMachine->screenWidth(); x++ )
          {
             int srcOfs = x + ( y * pMachine->screenWidth() );
-            int destOfs = getScreen()->width * ( y + 10 ) +
-               x + ( getScreen()->width - 256 - 10 );
+            int border = 10;
+            int destOfs =
+               getScreen()->width * ( y + yo ) +
+               x + xo;
+
             getScreen()->pBuffer[destOfs] = pScreenBuffer[srcOfs];
             if( screenBlank )
                pScreenBuffer[srcOfs] = 0;
          }
       }
 
+      // Draw frame around the screen output
+      for( int x = xo; x < xo + pMachine->screenWidth(); x++ )
+      {
+         getScreen()->pBuffer[( ( yo - 1 ) * getScreen()->width ) + x] = 129;
+         getScreen()->pBuffer[( ( yo + pMachine->screenHeight() ) * getScreen()->width ) + x] = 129;
+      }
+      for( int y = yo - 1; y < yo + pMachine->screenHeight() + 1; y++ )
+      {
+         getScreen()->pBuffer[( y * getScreen()->width ) + xo - 1] = 129;
+         getScreen()->pBuffer[( y * getScreen()->width ) + xo + pMachine->screenWidth()] = 129;
+      }
+
+      // Update the palette
       for( int i = 0; i < 32; i++ )
       {
          GGVDP::Color c = pMachine->getColor( i );
@@ -234,15 +165,11 @@ int main( int argc, char *argv[] )
                               ( c.green << 8 ) |
                               ( c.blue << 0 );
       }
-
-      if( debugMode )
-      {
-
-      }
-   } while( runSDL( pMachine, &config ) );
+   } while( runSDL( pMachine, &config, 128 ) );
 
    quitSDL();
 
+   delete pDebugger;
    delete pMachine;
    delete pScreenBuffer;
 

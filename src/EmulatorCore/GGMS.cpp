@@ -42,7 +42,7 @@ static int writeFile( const char *fname, u8 *data, int size )
    fwrite( data, size, 1, fh );
 
    fclose( fh );
-	
+
    return( 0 );
 }
 
@@ -60,7 +60,7 @@ static int stri_cmp( const char *a, const char *b )
       if( tolower( a[i] ) != tolower( b[i] ) )
          return( -1 );
    }
-	
+
    return( 0 );
 }
 
@@ -78,6 +78,59 @@ static int fsize( const char *fname )
    fclose( f );
 
    return( s );
+}
+
+
+GGMS::ReadPage::ReadPage() :
+   m_PageType( GGMS::PageType_NONE ),
+   m_Offset( 0 )
+{
+}
+
+
+GGMS::ReadPage::ReadPage( PageType pageType, int offset ) :
+   m_PageType( pageType ),
+   m_Offset( offset )
+{
+}
+
+
+GGMS::ReadPage::~ReadPage()
+{
+}
+
+
+std::string GGMS::ReadPage::toString( PageType pt )
+{
+   switch( pt )
+   {
+      case PageType_BIOS:
+         return( "BIOS" );
+         break;
+      case PageType_RAM:
+         return( "RAM" );
+         break;
+      case PageType_ROM:
+         return( "ROM" );
+         break;
+      case PageType_SRAM:
+         return( "SRAM" );
+         break;
+      default:
+         return( std::string() );
+         break;
+   }
+}
+
+int GGMS::ReadPage::offset() const
+{
+   return( m_Offset );
+}
+
+
+GGMS::PageType GGMS::ReadPage::pageType() const
+{
+   return( m_PageType );
 }
 
 
@@ -107,7 +160,7 @@ GGMS *GGMS::create( const char *fname, bool debug )
    pMachine->m_pCPU  = Z80::create( pMachine );
    pMachine->m_pVDP  = GGVDP::create();
    pMachine->m_pSND  = SN76489::create();
-   
+
    if( !( pMachine->m_pRAM && pMachine->m_pROM &&
           pMachine->m_pCPU && pMachine->m_pVDP && pMachine->m_pSRAM) )
    {
@@ -240,10 +293,48 @@ int GGMS::addy2ROM( u16 a )
 }
 
 
-u8 *GGMS::getReadPage( int page )
+u8 *GGMS::toPointer( const ReadPage &readPage )
 {
-   u8 *addr;
-   unsigned int a = page << 10;
+   u8 *pPointer = 0;
+
+   switch( readPage.pageType() )
+   {
+      case PageType_BIOS:
+         pPointer = smsbios;
+         break;
+      case PageType_ROM:
+         pPointer = m_pROM;
+         break;
+      case PageType_RAM:
+         pPointer = m_pRAM;
+         break;
+      case PageType_SRAM:
+         pPointer = m_pSRAM;
+         break;
+      default:
+         pPointer = 0;
+         break;
+   }
+
+   if( !pPointer )
+      return( 0 );
+
+   return( &pPointer[readPage.offset()] );
+}
+
+
+GGMS::ReadPage GGMS::addressToReadPage( u16 address )
+{
+   ReadPage rp = m_ReadPages[address >> 10];
+   return( ReadPage( rp.pageType(), rp.offset() + ( address & 0x03ff ) ) );
+}
+
+
+GGMS::ReadPage GGMS::getReadPage( int page )
+{
+   int a = page << 10;
+   PageType pageType = PageType_NONE;
+   int offset = 0;
 
    if( a < 0x0400 )
    {
@@ -251,32 +342,37 @@ u8 *GGMS::getReadPage( int page )
       {
          if( a >= m_romsize )
          {
-            addr = m_pROM;
+            pageType = PageType_ROM;
+            offset = 0;
          } else
          {
-            addr = &m_pROM[a];
+            pageType = PageType_ROM;
+            offset = a;
          }
       } else
       {
-         addr = &smsbios[a];
+         pageType = PageType_BIOS;
+         offset = a;
       }
    } else
    if( a < 0xc000 )
    {
       if( ( (int)( m_pBanks[0] & 0x08 ) != 0 ) && ( a >= 0x8000 ) )
       {
-         addr = &m_pSRAM[( a & 0x1fff ) | ( (u16)m_pBanks[0] & 0x04 ) << 12];
+         pageType = PageType_SRAM;
+         offset = ( a & 0x1fff ) | ( (u16)m_pBanks[0] & 0x04 ) << 12;
       } else
       {
-         u8 *data = ( ( m_memcontrol & 0x40 ) && !m_pVDP->isGG() ) ? smsbios : m_pROM;
-         addr = &data[addy2ROM( a )];
+         pageType = ( ( m_memcontrol & 0x40 ) && !m_pVDP->isGG() ) ? PageType_BIOS : PageType_ROM;
+         offset = addy2ROM( a );
       }
    } else
    {
-      addr = &m_pRAM[a & 0x1fff];
+      pageType = PageType_RAM;
+      offset = a & 0x1fff;
    }
 
-   return( addr );
+   return( ReadPage( pageType, offset ) );
 }
 
 
@@ -285,9 +381,11 @@ void GGMS::updatePage( int page )
    if( page == 0 )
    {
       m_pPages[0] = m_pROM;
+      m_ReadPages[0] = ReadPage( PageType_ROM, 0 );
    } else
    {
-      m_pPages[page] = getReadPage( page );
+      m_ReadPages[page] = getReadPage( page );
+      m_pPages[page] = toPointer( m_ReadPages[page] );
    }
 }
 
@@ -407,7 +505,7 @@ bool GGMS::run( u8 *pDisplayBuffer, int displayBufferWidth, int displayBufferHei
 void GGMS::renderFrame( u8 *pDisplayBuffer, int displayBufferWidth, int displayBufferHeight, int displayBufferXOfs, int displayBufferYOfs )
 {
    while( !run( pDisplayBuffer, displayBufferWidth, displayBufferHeight, displayBufferXOfs, displayBufferYOfs ) );
-   
+
    if( m_pVDP->paletteChanged() )
    {
       /* Set palette */
@@ -432,7 +530,7 @@ const GGVDP::Color &GGMS::getColor( int n ) const
    else
    if( n > 31 )
       n = 31;
-   
+
    return( m_Palette[n] );
 }
 
@@ -734,7 +832,7 @@ u8 GGMS::z80_in( u8 loc )
          {
             return( (u8)0xff );
          }
-         break;  
+         break;
 
       default:
          return( (u8)0xff );

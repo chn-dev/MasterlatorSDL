@@ -11,7 +11,13 @@ static SDL_Surface *pRenderSurface = 0;
 static SDL_AudioDeviceID audioDeviceId = -1;
 
 static bool quit = false;
-static std::map<SDL_Keycode, Uint64> keyMap;
+
+typedef struct KeyRepeat
+{
+   Uint32 nTicks;
+   int nRepeat;
+} KeyRepeat;
+static std::map<SDL_Keycode, KeyRepeat> keyMap;
 
 static std::set<SDL_Keycode> keyPressed;
 static std::set<SDL_Keycode> keyReleased;
@@ -123,8 +129,9 @@ bool initSDL( GGMS *pMachine, const Config *pConfig )
 static void setKeyPressed( SDL_Keycode keyCode, bool pressed )
 {
    if( pressed && !isKeyPressed( keyCode ) )
+   {
       keyPressed.insert( keyCode );
-   else
+   } else
    if( !pressed && isKeyPressed( keyCode ) )
       keyReleased.insert( keyCode );
 
@@ -135,7 +142,8 @@ static void setKeyPressed( SDL_Keycode keyCode, bool pressed )
    {
       if( keyMap.find( keyCode ) == keyMap.end() )
       {
-         keyMap[keyCode] = SDL_GetTicks64();
+         keyMap[keyCode].nTicks = SDL_GetTicks();
+         keyMap[keyCode].nRepeat = 0;
       }
    }
 }
@@ -147,7 +155,7 @@ bool isKeyPressed( SDL_Keycode keyCode )
 }
 
 
-bool runSDL( GGMS *pMachine, const Config *pConfig )
+bool runSDL( GGMS *pMachine, const Config *pConfig, u8 clearColor )
 {
    SDL_Event e;
 
@@ -281,7 +289,7 @@ bool runSDL( GGMS *pMachine, const Config *pConfig )
    for( int i = 0; i < getScreen()->width * getScreen()->height; i++ )
    {
       ( (Uint32 *)pRenderSurface->pixels )[i] = getScreen()->pal[getScreen()->pBuffer[i]];
-      getScreen()->pBuffer[i] = 0;
+      getScreen()->pBuffer[i] = clearColor;
    }
    SDL_UnlockSurface( pRenderSurface );
 
@@ -325,6 +333,31 @@ bool runSDL( GGMS *pMachine, const Config *pConfig )
 
    SDL_DestroyTexture( pTexture );
    SDL_RenderPresent( pRenderer );
+
+   for( auto v : keyMap )
+   {
+      v.first;
+
+      Uint32 now = SDL_GetTicks();
+      Uint32 diff = now - v.second.nTicks;
+      if( v.second.nRepeat == 0 )
+      {
+         if( diff >= 1000 )
+         {
+            keyMap[v.first].nRepeat++;
+            keyMap[v.first].nTicks = now;
+            keyPressed.insert( v.first );
+         }
+      } else
+      {
+         if( diff >= 50 )
+         {
+            keyMap[v.first].nRepeat++;
+            keyMap[v.first].nTicks = now;
+            keyPressed.insert( v.first );
+         }
+      }
+   }
 
    return( !quit );
 }

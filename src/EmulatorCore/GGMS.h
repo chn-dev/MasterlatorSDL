@@ -13,6 +13,32 @@ class GGMS : public Z80::Interface
 public:
    virtual ~GGMS();
 
+   enum PageType
+   {
+      PageType_NONE,
+      PageType_ROM,
+      PageType_RAM,
+      PageType_SRAM,
+      PageType_BIOS
+   };
+
+   class ReadPage
+   {
+   public:
+      ReadPage();
+      ReadPage( PageType pageType, int offset );
+      ~ReadPage();
+
+      static std::string toString( PageType pt );
+
+      int offset() const;
+      PageType pageType() const;
+
+   private:
+      PageType m_PageType;
+      int m_Offset;
+   };
+
    static GGMS *create( const char *fname, bool debug );
 
    Z80 *cpu() const;
@@ -31,7 +57,7 @@ public:
    bool sramChanged() const;
    void enableBIOS();
    void disableBIOS();
-   
+
    void setP1LeftButton( bool b );
    void setP1RightButton( bool b );
    void setP1UpButton( bool b );
@@ -39,10 +65,11 @@ public:
    void setP1AButton( bool a );
    void setP1BButton( bool b );
    void setP1StartButton( bool start );
-   
+
    int screenWidth() const;
    int screenHeight() const;
    const GGVDP::Color &getColor( int n ) const;
+   ReadPage addressToReadPage( u16 address );
 
    virtual u8 z80_in( u8 loc );
    virtual void z80_out( u8 loc, u8 d );
@@ -52,10 +79,11 @@ public:
 
 private:
    GGMS();
+   u8 *toPointer( const ReadPage &readPage );
    bool run( u8 *pDisplayBuffer, int displayBufferWidth, int displayBufferHeight, int displayBufferXOfs, int displayBufferYOfs );
    void updateAllPages();
    void updatePage( int );
-   u8 *getReadPage( int page );
+   ReadPage getReadPage( int page );
    int addy2ROM( u16 );
 
    bool          m_debug;
@@ -84,6 +112,7 @@ private:
    bool          m_bios_en;
    bool          m_sram_changed;
    u8           *m_pPages[64];
+   ReadPage      m_ReadPages[64];
    const char   *m_pGameName;
    u32           m_CRC32;
    int           m_pause;
