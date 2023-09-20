@@ -111,7 +111,7 @@ bool Debugger::doDebug( u8 *pScreenBuffer )
          if( m_CursorPosition == m_Disassembly[i].address )
          {
             m_CursorPosition = m_Disassembly[i - 1].address;
-            printf( "%d %d\n", m_Disassembly.size(), i );
+            printf( "%ld %d\n", m_Disassembly.size(), i );
             break;
          }
       }
@@ -125,7 +125,7 @@ bool Debugger::doDebug( u8 *pScreenBuffer )
          if( m_CursorPosition == m_Disassembly[i].address )
          {
             m_CursorPosition = m_Disassembly[i + 1].address;
-            printf( "%d %d\n", m_Disassembly.size(), i );
+            printf( "%ld %d\n", m_Disassembly.size(), i );
             break;
          }
       }
@@ -182,7 +182,7 @@ void Debugger::printRegisters( int x, int y ) const
    u8 a = af.abyte.high;
    u8 f = af.abyte.low;
    char tmp[256];
-   char flags[256];
+   char flags[10];
    sprintf( flags, "%c%c%c%c%c%c%c%c",
       f & FLAG_S ? 'S' : '-',
       f & FLAG_Z ? 'Z' : '-',
@@ -279,7 +279,7 @@ void Debugger::dumpRegister( char *pDest, const char *pName, union_word reg )
 {
    sprintf( pDest, "%s = %04xh = '%c%c' = %5du = %6di",
       pName,
-      reg,
+      reg.aword,
       isprint( reg.abyte.high ) ? reg.abyte.high : ' ',
       isprint( reg.abyte.low ) ? reg.abyte.low : ' ',
       reg.aword,
