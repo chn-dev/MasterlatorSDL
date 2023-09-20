@@ -58,15 +58,21 @@ std::string Z80::Instruction::toString() const
 }
 
 
-Z80::Interface::~Interface()
+Z80::MemoryInterface::~MemoryInterface()
 {
 }
 
 
-Z80::Z80( Z80::Interface *pInterface )
+Z80::DebuggerInterface::~DebuggerInterface()
+{
+}
+
+
+Z80::Z80( Z80::MemoryInterface *pInterface )
 {
    reset();
-   m_pInterface = pInterface;
+   m_pMemInterface = pInterface;
+   m_pDebuggerInterface = 0;
 }
 
 
@@ -116,7 +122,7 @@ void Z80::reset()
 }
 
 
-Z80 *Z80::create( Z80::Interface *pInterface )
+Z80 *Z80::create( Z80::MemoryInterface *pInterface )
 {
    Z80 *pCpu = new Z80( pInterface );
 
@@ -124,6 +130,12 @@ Z80 *Z80::create( Z80::Interface *pInterface )
    pCpu->reset();
 
    return( pCpu );
+}
+
+
+void Z80::setDebugger( Z80::DebuggerInterface *pDebuggerInterface )
+{
+   m_pDebuggerInterface = pDebuggerInterface;
 }
 
 
@@ -364,7 +376,7 @@ std::vector<Z80::Z80::Instruction> Z80::disassemble( u16 loc, int beforeInstr, i
       u8 op[8];
       for( int j = 0; j < 8; j++ )
       {
-         op[j] = m_pInterface->z80_readMem( loc + j );
+         op[j] = m_pMemInterface->z80_readMem( loc + j );
       }
 
       char dest[256];
@@ -372,6 +384,7 @@ std::vector<Z80::Z80::Instruction> Z80::disassemble( u16 loc, int beforeInstr, i
       Z80::Instruction instruction;
       instruction.address = loc;
       instruction.disassembly = dest;
+      instruction.hasBreakpoint = false;
       for( int j = 0; j < s; j++ )
       {
          instruction.code.push_back( op[j] );
@@ -473,7 +486,7 @@ Z80::Instruction Z80::disassemble( u16 loc )
 
    for( u16 j = 0; j < 8; j++ )
    {
-      op[j] = m_pInterface->z80_readMem( loc + j );
+      op[j] = m_pMemInterface->z80_readMem( loc + j );
    }
 
    int size = disassemble( op, dest );
@@ -481,6 +494,7 @@ Z80::Instruction Z80::disassemble( u16 loc )
    Z80::Instruction instruction;
    instruction.disassembly = dest;
    instruction.address = loc;
+   instruction.hasBreakpoint = false;
    for( int j = 0; j < size; j++ )
    {
       instruction.code.push_back( op[j] );
@@ -671,6 +685,11 @@ int Z80::step()
 {
    int i = 0;
 
+   if( m_pDebuggerInterface )
+   {
+      m_pDebuggerInterface->z80_execStart( m_PC.aword );
+   }
+
    i += execInterrupt();
 
    if( ( cpu_IFF & 0x80 ) && ( m_eicount <= 0 ) )
@@ -697,8 +716,6 @@ int Z80::step()
       union_dword t, tt, t2;
       union_word  dw;
 
-      m_pInterface->z80_exec( m_PC.aword );
-
       /*         char dasm[16];
                u8 d[6];
                for( int i = 0; i < sizeof( d ); i++ )
@@ -707,6 +724,11 @@ int Z80::step()
                printf("PC=%04x [%02x %02x %02x %02x] AF=%04x BC=%04x DE=%04x HL=%04x SP=%04x IX=%04x IY=%04x - %s\n", cpu_getPC, d[0], d[1], d[2], d[3], cpu_getAF, cpu_getBC, cpu_getDE, cpu_getHL, cpu_getSP, cpu_getIX, cpu_getIY, &dasm[0]);*/
 #define CYCLES(a) i += a
 #include "decode.h"
+   }
+
+   if( m_pDebuggerInterface )
+   {
+      m_pDebuggerInterface->z80_execFinish( m_PC.aword );
    }
 
    return( i );
@@ -725,7 +747,27 @@ int Z80::run( int c )
          return( c );
 
       i += cycles;
+
+      if( m_pDebuggerInterface )
+      {
+         if( m_pDebuggerInterface->z80_break() )
+         {
+            break;
+         }
+      }
    }
 
    return( i );
+}
+
+
+bool Z80::isAtBreakpoint() const
+{
+   if( m_pDebuggerInterface )
+   {
+      return( m_pDebuggerInterface->z80_break() );
+   } else
+   {
+      return( false );
+   }
 }

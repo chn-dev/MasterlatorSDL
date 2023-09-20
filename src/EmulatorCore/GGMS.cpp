@@ -100,6 +100,24 @@ GGMS::ReadPage::~ReadPage()
 }
 
 
+bool GGMS::ReadPage::operator<( const GGMS::ReadPage &other ) const
+{
+   if( m_PageType == other.m_PageType )
+   {
+      return( m_Offset < other.m_Offset );
+   } else
+   {
+      return( m_PageType < other.m_PageType );
+   }
+}
+
+
+bool GGMS::ReadPage::operator==( const GGMS::ReadPage &other ) const
+{
+   return( ( m_PageType == other.m_PageType ) && ( m_Offset == other.m_Offset ) );
+}
+
+
 std::string GGMS::ReadPage::toString( PageType pt )
 {
    switch( pt )
@@ -487,24 +505,43 @@ bool GGMS::run( u8 *pDisplayBuffer, int displayBufferWidth, int displayBufferHei
       m_pause = 0;
    }
 
+   // run CPU for a raster line
    int cpuCycles = m_pCPU->run( m_cyclesPerLine );
    m_cyclesPerLine -= cpuCycles;
+   bool ok = false;
    while( m_cyclesPerLine <= 0 )
-      m_cyclesPerLine += CYCLES_PER_LINE;
-
-   int cycleResult = m_pVDP->cycle( pDisplayBuffer, displayBufferWidth, displayBufferHeight, displayBufferXOfs, displayBufferYOfs );
-   if( cycleResult & GGVDP_CYCLE_IRQ )
    {
-      m_pCPU->interrupt( 0x38 );
+      ok = true;
+      m_cyclesPerLine += CYCLES_PER_LINE;
+   }
+
+   int cycleResult = 0;
+   if( ok )
+   {
+      cycleResult = m_pVDP->cycle( pDisplayBuffer, displayBufferWidth, displayBufferHeight, displayBufferXOfs, displayBufferYOfs );
+      if( cycleResult & GGVDP_CYCLE_IRQ )
+      {
+         m_pCPU->interrupt( 0x38 );
+      }
    }
 
    return( ( cycleResult & GGVDP_CYCLE_FINISHEDFRAME ) != 0 );
 }
 
 
+bool GGMS::isAtBreakpoint() const
+{
+   return( m_pCPU->isAtBreakpoint() );
+}
+
+
 void GGMS::renderFrame( u8 *pDisplayBuffer, int displayBufferWidth, int displayBufferHeight, int displayBufferXOfs, int displayBufferYOfs )
 {
-   while( !run( pDisplayBuffer, displayBufferWidth, displayBufferHeight, displayBufferXOfs, displayBufferYOfs ) );
+   while( !run( pDisplayBuffer, displayBufferWidth, displayBufferHeight, displayBufferXOfs, displayBufferYOfs ) )
+   {
+      if( isAtBreakpoint() )
+         break;
+   }
 
    if( m_pVDP->paletteChanged() )
    {
@@ -883,16 +920,6 @@ void GGMS::z80_out( u8 loc, u8 d )
             m_countrydetect ^= 0xc0;
          }
          break;
-   }
-}
-
-
-void GGMS::z80_exec( u16 loc )
-{
-   if( m_debug )
-   {
-      u8 *pPage = m_pPages[loc >> 10];
-      u16 ofs = loc & 0x3ff;
    }
 }
 

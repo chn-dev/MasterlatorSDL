@@ -120,13 +120,13 @@
 #define cpu_setl(a) (m_hl.abyte.low = a)
 #define cpu_IFF m_IFF
 
-#define read(a)   (m_pInterface->z80_readMem(a))
-#define write(a,b)  (m_pInterface->z80_writeMem(a,b))
+#define read(a)   (m_pMemInterface->z80_readMem(a))
+#define write(a,b)  (m_pMemInterface->z80_writeMem(a,b))
 
 #define read16(a) (read(a) | (read(a + 1) << 8))
 #define write16(a,b)  write(a,b);write(a + 1, b >> 8);
-#define in(a)   (m_pInterface->z80_in(a))
-#define out(a,b)  (m_pInterface->z80_out(a,b))
+#define in(a)   (m_pMemInterface->z80_in(a))
+#define out(a,b)  (m_pMemInterface->z80_out(a,b))
 
 
 

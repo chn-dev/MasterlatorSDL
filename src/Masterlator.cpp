@@ -93,6 +93,7 @@ int main( int argc, char *argv[] )
    printf( "Window height = %d\n", config.windowHeight );
 
    Debugger *pDebugger = new Debugger( pMachine );
+   pMachine->cpu()->setDebugger( pDebugger );
 
    do
    {
@@ -102,7 +103,13 @@ int main( int argc, char *argv[] )
       {
          //while( !singleInstructionStep( pMachine ) );
          pMachine->renderFrame( pScreenBuffer, pMachine->screenWidth(), pMachine->screenHeight(), 0, 0 );
-         screenBlank = true;
+         if( pMachine->isAtBreakpoint() )
+         {
+            pDebugger->enable( true );
+         } else
+         {
+            screenBlank = true;
+         }
       }
 
       if( config.debug )
@@ -113,7 +120,7 @@ int main( int argc, char *argv[] )
             pDebugger->enable( true );
          }
 
-         if( keyHasBeenPressed( SDLK_c ) && pDebugger->isEnabled() )
+         if( keyHasBeenPressed( SDLK_F5 ) && pDebugger->isEnabled() )
          {
             printf( "CONTINUE\n" );
             pDebugger->enable( false );

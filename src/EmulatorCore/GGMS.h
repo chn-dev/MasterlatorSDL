@@ -8,7 +8,7 @@
 #include "crc32.h"
 #include "defines.h"
 
-class GGMS : public Z80::Interface
+class GGMS : public Z80::MemoryInterface
 {
 public:
    virtual ~GGMS();
@@ -31,6 +31,9 @@ public:
 
       static std::string toString( PageType pt );
 
+      bool operator==( const ReadPage &other ) const;
+      bool operator<( const ReadPage &other ) const;
+
       int offset() const;
       PageType pageType() const;
 
@@ -49,6 +52,8 @@ public:
    void renderFrame( u8 *pDisplayBuffer, int displayBufferWidth, int displayBufferHeight, int displayBufferXOfs, int displayBufferYOfs );
    bool singleInstructionStep( u8 *pDisplayBuffer, int displayBufferWidth, int displayBufferHeight, int displayBufferXOfs, int displayBufferYOfs );
    void renderAudio( void *pBuffer, int numSamples, int freq );
+
+   bool isAtBreakpoint() const;
 
    int loadSRAM( const char * );
    int saveSRAM( const char * );
@@ -75,7 +80,6 @@ public:
    virtual void z80_out( u8 loc, u8 d );
    virtual u8 z80_readMem( u16 loc ) const;
    virtual void z80_writeMem( u16 loc, u8 d );
-   virtual void z80_exec( u16 loc );
 
 private:
    GGMS();
