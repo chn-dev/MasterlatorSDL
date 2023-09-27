@@ -71,13 +71,21 @@ public:
    std::vector<Z80::Instruction> disassemble( u16 loc, int beforeInstr, int afterInstr );
 
    union_word getAF() const;
+   void setAF( union_word v );
    union_word getBC() const;
+   void setBC( union_word v );
    union_word getDE() const;
+   void setDE( union_word v );
    union_word getHL() const;
+   void setHL( union_word v );
    union_word getSP() const;
+   void setSP( union_word v );
    union_word getPC() const;
+   void setPC( union_word v );
    union_word getIX() const;
+   void setIX( union_word v );
    union_word getIY() const;
+   void setIY( union_word v );
 
 private:
    Z80( Z80::MemoryInterface *pInterface );

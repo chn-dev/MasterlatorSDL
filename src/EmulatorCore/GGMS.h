@@ -13,32 +13,32 @@ class GGMS : public Z80::MemoryInterface
 public:
    virtual ~GGMS();
 
-   enum PageType
+   enum MemoryType
    {
-      PageType_NONE,
-      PageType_ROM,
-      PageType_RAM,
-      PageType_SRAM,
-      PageType_BIOS
+      MemoryType_NONE,
+      MemoryType_ROM,
+      MemoryType_RAM,
+      MemoryType_SRAM,
+      MemoryType_BIOS
    };
 
-   class ReadPage
+   class MemoryLocation
    {
    public:
-      ReadPage();
-      ReadPage( PageType pageType, int offset );
-      ~ReadPage();
+      MemoryLocation();
+      MemoryLocation( MemoryType memType, int offset );
+      ~MemoryLocation();
 
-      static std::string toString( PageType pt );
+      static std::string toString( MemoryType pt );
 
-      bool operator==( const ReadPage &other ) const;
-      bool operator<( const ReadPage &other ) const;
+      bool operator==( const MemoryLocation &other ) const;
+      bool operator<( const MemoryLocation &other ) const;
 
       int offset() const;
-      PageType pageType() const;
+      MemoryType memoryType() const;
 
    private:
-      PageType m_PageType;
+      MemoryType m_MemoryType;
       int m_Offset;
    };
 
@@ -74,7 +74,7 @@ public:
    int screenWidth() const;
    int screenHeight() const;
    const GGVDP::Color &getColor( int n ) const;
-   ReadPage addressToReadPage( u16 address );
+   MemoryLocation addressToReadPage( u16 address );
 
    virtual u8 z80_in( u8 loc );
    virtual void z80_out( u8 loc, u8 d );
@@ -83,45 +83,45 @@ public:
 
 private:
    GGMS();
-   u8 *toPointer( const ReadPage &readPage );
+   u8 *toPointer( const MemoryLocation &memLoc );
    bool run( u8 *pDisplayBuffer, int displayBufferWidth, int displayBufferHeight, int displayBufferXOfs, int displayBufferYOfs );
    void updateAllPages();
    void updatePage( int );
-   ReadPage getReadPage( int page );
+   MemoryLocation getReadPage( int page );
    int addy2ROM( u16 );
 
-   bool          m_debug;
+   bool           m_debug;
 
-   Z80          *m_pCPU;
-   GGVDP        *m_pVDP;
-   SN76489      *m_pSND;
+   Z80           *m_pCPU;
+   GGVDP         *m_pVDP;
+   SN76489       *m_pSND;
 
-   u8           *m_pROM;
-   unsigned int  m_romsize;
+   u8            *m_pROM;
+   unsigned int   m_romsize;
 
-   u8           *m_pRAM;
-   unsigned int  m_ramsize;
+   u8            *m_pRAM;
+   unsigned int   m_ramsize;
 
-   u8           *m_pSRAM;
-   unsigned int  m_sramsize;
+   u8            *m_pSRAM;
+   unsigned int   m_sramsize;
 
-   bool          m_jap;      /* TRUE if japanese, FALSE if european/american */
-   u8            m_countrydetect; /* Used as a temporary buffer */
-   u8            m_memcontrol;
-   u8            m_banks_rom[4];
-   u8            m_banks_bios[4];
-   u8           *m_pBanks;
-   u8            m_p1_keys[8]; /* left, right, up, down, a, b, start (gg only) */
-   u8            m_p2_keys[8];
-   bool          m_bios_en;
-   bool          m_sram_changed;
-   u8           *m_pPages[64];
-   ReadPage      m_ReadPages[64];
-   const char   *m_pGameName;
-   u32           m_CRC32;
-   int           m_pause;
-   GGVDP::Color  m_Palette[32];
-   int           m_cyclesPerLine;
+   bool           m_jap;      /* TRUE if japanese, FALSE if european/american */
+   u8             m_countrydetect; /* Used as a temporary buffer */
+   u8             m_memcontrol;
+   u8             m_banks_rom[4];
+   u8             m_banks_bios[4];
+   u8            *m_pBanks;
+   u8             m_p1_keys[8]; /* left, right, up, down, a, b, start (gg only) */
+   u8             m_p2_keys[8];
+   bool           m_bios_en;
+   bool           m_sram_changed;
+   u8            *m_pPages[64];
+   MemoryLocation m_ReadPages[64];
+   const char    *m_pGameName;
+   u32            m_CRC32;
+   int            m_pause;
+   GGVDP::Color   m_Palette[32];
+   int            m_cyclesPerLine;
 };
 
 #endif

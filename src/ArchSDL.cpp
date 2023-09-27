@@ -342,7 +342,7 @@ bool runSDL( GGMS *pMachine, const Config *pConfig, u8 clearColor )
       Uint32 diff = now - v.second.nTicks;
       if( v.second.nRepeat == 0 )
       {
-         if( diff >= 1000 )
+         if( diff >= 500 )
          {
             keyMap[v.first].nRepeat++;
             keyMap[v.first].nTicks = now;

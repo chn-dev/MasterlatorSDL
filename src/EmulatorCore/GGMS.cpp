@@ -81,57 +81,57 @@ static int fsize( const char *fname )
 }
 
 
-GGMS::ReadPage::ReadPage() :
-   m_PageType( GGMS::PageType_NONE ),
+GGMS::MemoryLocation::MemoryLocation() :
+   m_MemoryType( GGMS::MemoryType_NONE ),
    m_Offset( 0 )
 {
 }
 
 
-GGMS::ReadPage::ReadPage( PageType pageType, int offset ) :
-   m_PageType( pageType ),
+GGMS::MemoryLocation::MemoryLocation( MemoryType memType, int offset ) :
+   m_MemoryType( memType ),
    m_Offset( offset )
 {
 }
 
 
-GGMS::ReadPage::~ReadPage()
+GGMS::MemoryLocation::~MemoryLocation()
 {
 }
 
 
-bool GGMS::ReadPage::operator<( const GGMS::ReadPage &other ) const
+bool GGMS::MemoryLocation::operator<( const GGMS::MemoryLocation &other ) const
 {
-   if( m_PageType == other.m_PageType )
+   if( m_MemoryType == other.m_MemoryType )
    {
       return( m_Offset < other.m_Offset );
    } else
    {
-      return( m_PageType < other.m_PageType );
+      return( m_MemoryType < other.m_MemoryType );
    }
 }
 
 
-bool GGMS::ReadPage::operator==( const GGMS::ReadPage &other ) const
+bool GGMS::MemoryLocation::operator==( const GGMS::MemoryLocation &other ) const
 {
-   return( ( m_PageType == other.m_PageType ) && ( m_Offset == other.m_Offset ) );
+   return( ( m_MemoryType == other.m_MemoryType ) && ( m_Offset == other.m_Offset ) );
 }
 
 
-std::string GGMS::ReadPage::toString( PageType pt )
+std::string GGMS::MemoryLocation::toString( MemoryType pt )
 {
    switch( pt )
    {
-      case PageType_BIOS:
+      case MemoryType_BIOS:
          return( "BIOS" );
          break;
-      case PageType_RAM:
+      case MemoryType_RAM:
          return( "RAM" );
          break;
-      case PageType_ROM:
+      case MemoryType_ROM:
          return( "ROM" );
          break;
-      case PageType_SRAM:
+      case MemoryType_SRAM:
          return( "SRAM" );
          break;
       default:
@@ -140,15 +140,15 @@ std::string GGMS::ReadPage::toString( PageType pt )
    }
 }
 
-int GGMS::ReadPage::offset() const
+int GGMS::MemoryLocation::offset() const
 {
    return( m_Offset );
 }
 
 
-GGMS::PageType GGMS::ReadPage::pageType() const
+GGMS::MemoryType GGMS::MemoryLocation::memoryType() const
 {
-   return( m_PageType );
+   return( m_MemoryType );
 }
 
 
@@ -311,22 +311,22 @@ int GGMS::addy2ROM( u16 a )
 }
 
 
-u8 *GGMS::toPointer( const ReadPage &readPage )
+u8 *GGMS::toPointer( const MemoryLocation &memLoc )
 {
    u8 *pPointer = 0;
 
-   switch( readPage.pageType() )
+   switch( memLoc.memoryType() )
    {
-      case PageType_BIOS:
+      case MemoryType_BIOS:
          pPointer = smsbios;
          break;
-      case PageType_ROM:
+      case MemoryType_ROM:
          pPointer = m_pROM;
          break;
-      case PageType_RAM:
+      case MemoryType_RAM:
          pPointer = m_pRAM;
          break;
-      case PageType_SRAM:
+      case MemoryType_SRAM:
          pPointer = m_pSRAM;
          break;
       default:
@@ -337,21 +337,21 @@ u8 *GGMS::toPointer( const ReadPage &readPage )
    if( !pPointer )
       return( 0 );
 
-   return( &pPointer[readPage.offset()] );
+   return( &pPointer[memLoc.offset()] );
 }
 
 
-GGMS::ReadPage GGMS::addressToReadPage( u16 address )
+GGMS::MemoryLocation GGMS::addressToReadPage( u16 address )
 {
-   ReadPage rp = m_ReadPages[address >> 10];
-   return( ReadPage( rp.pageType(), rp.offset() + ( address & 0x03ff ) ) );
+   MemoryLocation ml = m_ReadPages[address >> 10];
+   return( MemoryLocation( ml.memoryType(), ml.offset() + ( address & 0x03ff ) ) );
 }
 
 
-GGMS::ReadPage GGMS::getReadPage( int page )
+GGMS::MemoryLocation GGMS::getReadPage( int page )
 {
    int a = page << 10;
-   PageType pageType = PageType_NONE;
+   MemoryType memType = MemoryType_NONE;
    int offset = 0;
 
    if( a < 0x0400 )
@@ -360,16 +360,16 @@ GGMS::ReadPage GGMS::getReadPage( int page )
       {
          if( a >= m_romsize )
          {
-            pageType = PageType_ROM;
+            memType = MemoryType_ROM;
             offset = 0;
          } else
          {
-            pageType = PageType_ROM;
+            memType = MemoryType_ROM;
             offset = a;
          }
       } else
       {
-         pageType = PageType_BIOS;
+         memType = MemoryType_BIOS;
          offset = a;
       }
    } else
@@ -377,20 +377,20 @@ GGMS::ReadPage GGMS::getReadPage( int page )
    {
       if( ( (int)( m_pBanks[0] & 0x08 ) != 0 ) && ( a >= 0x8000 ) )
       {
-         pageType = PageType_SRAM;
+         memType = MemoryType_SRAM;
          offset = ( a & 0x1fff ) | ( (u16)m_pBanks[0] & 0x04 ) << 12;
       } else
       {
-         pageType = ( ( m_memcontrol & 0x40 ) && !m_pVDP->isGG() ) ? PageType_BIOS : PageType_ROM;
+         memType = ( ( m_memcontrol & 0x40 ) && !m_pVDP->isGG() ) ? MemoryType_BIOS : MemoryType_ROM;
          offset = addy2ROM( a );
       }
    } else
    {
-      pageType = PageType_RAM;
+      memType = MemoryType_RAM;
       offset = a & 0x1fff;
    }
 
-   return( ReadPage( pageType, offset ) );
+   return( MemoryLocation( memType, offset ) );
 }
 
 
@@ -399,7 +399,7 @@ void GGMS::updatePage( int page )
    if( page == 0 )
    {
       m_pPages[0] = m_pROM;
-      m_ReadPages[0] = ReadPage( PageType_ROM, 0 );
+      m_ReadPages[0] = MemoryLocation( MemoryType_ROM, 0 );
    } else
    {
       m_ReadPages[page] = getReadPage( page );

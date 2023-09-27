@@ -314,9 +314,21 @@ union_word Z80::getAF() const
 }
 
 
+void Z80::setAF( union_word v )
+{
+   m_AF = v;
+}
+
+
 union_word Z80::getBC() const
 {
    return( m_BC );
+}
+
+
+void Z80::setBC( union_word v )
+{
+   m_BC = v;
 }
 
 
@@ -326,9 +338,21 @@ union_word Z80::getDE() const
 }
 
 
+void Z80::setDE( union_word v )
+{
+   m_DE = v;
+}
+
+
 union_word Z80::getHL() const
 {
    return( m_HL );
+}
+
+
+void Z80::setHL( union_word v )
+{
+   m_HL = v;
 }
 
 
@@ -338,9 +362,21 @@ union_word Z80::getSP() const
 }
 
 
+void Z80::setSP( union_word v )
+{
+   m_SP = v;
+}
+
+
 union_word Z80::getIX() const
 {
    return( m_IX );
+}
+
+
+void Z80::setIX( union_word v )
+{
+   m_IX = v;
 }
 
 
@@ -350,9 +386,21 @@ union_word Z80::getIY() const
 }
 
 
+void Z80::setIY( union_word v )
+{
+   m_IY = v;
+}
+
+
 union_word Z80::getPC() const
 {
    return( m_PC );
+}
+
+
+void Z80::setPC( union_word v )
+{
+   m_PC = v;
 }
 
 

@@ -83,6 +83,8 @@ int main( int argc, char *argv[] )
 
    getScreen()->pal[128] = 0xff000000;
    getScreen()->pal[129] = 0xffffffff;
+   getScreen()->pal[130] = 0xffff8080;
+   getScreen()->pal[131] = 0xff804040;
 
    printf( "Screen Width: %d\n", pMachine->screenWidth() );
    printf( "Screen Height: %d\n", pMachine->screenHeight() );
@@ -99,13 +101,13 @@ int main( int argc, char *argv[] )
    {
       bool screenBlank = false;
 
-      if( !pDebugger->isEnabled() )
+      if( !pDebugger->isActivated() )
       {
          //while( !singleInstructionStep( pMachine ) );
          pMachine->renderFrame( pScreenBuffer, pMachine->screenWidth(), pMachine->screenHeight(), 0, 0 );
          if( pMachine->isAtBreakpoint() )
          {
-            pDebugger->enable( true );
+            pDebugger->activate( true );
          } else
          {
             screenBlank = true;
@@ -114,19 +116,17 @@ int main( int argc, char *argv[] )
 
       if( config.debug )
       {
-         if( keyHasBeenPressed( SDLK_d ) && !pDebugger->isEnabled() )
+         if( keyHasBeenPressed( SDLK_d ) && !pDebugger->isActivated() )
          {
-            printf( "DEBUG %04x\n", pMachine->cpu()->getPC().aword );
-            pDebugger->enable( true );
+            pDebugger->activate( true );
          }
 
-         if( keyHasBeenPressed( SDLK_F5 ) && pDebugger->isEnabled() )
+         if( keyHasBeenPressed( SDLK_F5 ) && pDebugger->isActivated() )
          {
-            printf( "CONTINUE\n" );
-            pDebugger->enable( false );
+            pDebugger->activate( false );
          }
 
-         if( pDebugger->isEnabled() )
+         if( pDebugger->isActivated() )
          {
             screenBlank = pDebugger->doDebug( pScreenBuffer );
          }
