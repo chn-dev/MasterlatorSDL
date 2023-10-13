@@ -1,6 +1,8 @@
 #include "Debugger.h"
 #include "DebuggerSectionDisassembly.h"
 #include "DebuggerSectionRegisters.h"
+#include "DebuggerSectionMemoryDump.h"
+#include "DebuggerSectionTiles.h"
 
 #include "ArchSDL.h"
 #include "Font.h"
@@ -19,10 +21,13 @@ Debugger::Debugger( GGMS *pMachine ) :
    m_pMachine( pMachine ),
    m_Activated( false ),
    m_Break( false ),
-   m_CurrentSection( 0 )
+   m_CurrentSection( 1 )
 {
-   m_Sections.push_back( new SectionDisassembly( this, "Disassembly", 10, 90, 480, 240 ) );
-   m_Sections.push_back( new SectionRegisters(   this, "Registers",   10, 10, 480, 70 ) );
+   m_Sections.push_back( new SectionRegisters(   this, "Registers",   10, 10,  562, 70 ) );
+   m_Sections.push_back( new SectionDisassembly( this, "Disassembly", 10, 90,  562, 240 ) );
+   m_Sections.push_back( new SectionMemoryDump(  this, "Memory Dump", 10, 340, 562, 130 ) );
+
+   m_Sections.push_back( new SectionTiles( this, "Tiles", 587, 212, 257, /*156*/258 ) );
 }
 
 
@@ -35,6 +40,14 @@ Debugger::~Debugger()
    }
 
    m_Sections.clear();
+
+   for( int i = 0; i < m_StaticSections.size(); i++ )
+   {
+      Section *pSection = m_StaticSections[i];
+      delete pSection;
+   }
+
+   m_StaticSections.clear();
 }
 
 
@@ -109,30 +122,42 @@ bool Debugger::isActivated() const
 bool Debugger::execSections( u8 *pScreenBuffer )
 {
    bool screenBlank = false;
+
+/*   if( !isActivated() )
+      return( false );*/
+
    Section *pActiveSection = 0;
    for( int i = 0; i < m_Sections.size(); i++ )
    {
       if( i == m_CurrentSection )
          pActiveSection = m_Sections[i];
       else
-         screenBlank = screenBlank || m_Sections[i]->exec( pScreenBuffer, false );
+      {
+         if( isActivated() || m_Sections[i]->isAlwaysVisible() )
+         {
+            screenBlank = screenBlank || m_Sections[i]->exec( pScreenBuffer, false );
+         }
+      }
    }
 
    if( pActiveSection )
    {
-      screenBlank = screenBlank || pActiveSection->exec( pScreenBuffer, true );
+      if( isActivated() || pActiveSection->isAlwaysVisible() )
+      {
+         screenBlank = screenBlank || pActiveSection->exec( pScreenBuffer, true );
+      }
    }
 
-   return( screenBlank );
+   return( screenBlank && isActivated() );
 }
 
 
 bool Debugger::doDebug( u8 *pScreenBuffer )
 {
+   bool screenBlank = execSections( pScreenBuffer );
+
    if( !isActivated() )
       return( false );
-
-   bool screenBlank = execSections( pScreenBuffer );
 
    if( keyHasBeenPressed( SDLK_TAB ) )
    {
@@ -157,34 +182,6 @@ bool Debugger::doDebug( u8 *pScreenBuffer )
 }
 
 
-void Debugger::printMemoryDump( std::string title, int x, int y ) const
-{
-   u16 loc = 0xd000;
-   int bytesPerLine = 8;
-   char tmp[256];
-
-   for( int line = 0; line < 16; line++ )
-   {
-      std::string l;
-
-      sprintf( tmp, "%04x: ", loc );
-      l = tmp;
-
-      for( int i = 0; i < bytesPerLine; i++ )
-      {
-         if( i > 0 )
-            l.append( " " );
-
-         sprintf( tmp, "%02x", m_pMachine->z80_readMem( loc ) );
-         l.append( tmp );
-         loc++;
-      }
-
-      print8x8( getScreen(), x, y + ( 10 * line ), 129, false, l );
-   }
-}
-
-
 bool Debugger::singleInstructionStep( u8 *pScreenBuffer )
 {
    return( m_pMachine->singleInstructionStep(
@@ -192,3 +189,4 @@ bool Debugger::singleInstructionStep( u8 *pScreenBuffer )
       m_pMachine->screenWidth(), m_pMachine->screenHeight(),
       0, 0 ) );
 }
+

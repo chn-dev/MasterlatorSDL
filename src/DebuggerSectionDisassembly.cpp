@@ -15,6 +15,12 @@ Debugger::SectionDisassembly::SectionDisassembly( Debugger *pDebugger, std::stri
 }
 
 
+bool Debugger::SectionDisassembly::isAlwaysVisible()
+{
+   return( false );
+}
+
+
 bool Debugger::SectionDisassembly::exec( u8 *pScreenBuffer, bool isCurrentSection )
 {
    Section::exec( pScreenBuffer, isCurrentSection );

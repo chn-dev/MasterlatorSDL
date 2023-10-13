@@ -24,7 +24,6 @@ public:
    virtual bool z80_break();
 
 private:
-   void printMemoryDump( std::string title, int x, int y ) const;
    bool isAtBreakpoint( u16 loc ) const;
    bool execSections( u8 *pScreenBuffer );
 
@@ -36,7 +35,10 @@ private:
    class Section;
    class SectionDisassembly;
    class SectionRegisters;
+   class SectionMemoryDump;
+   class SectionTiles;
    std::vector<Section *> m_Sections;
+   std::vector<Section *> m_StaticSections;
    SectionDisassembly *sectionDisassembly() const;
    int m_CurrentSection;
 };

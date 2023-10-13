@@ -9,6 +9,7 @@ class Debugger::SectionRegisters : public Section
 public:
    enum Z80Register
    {
+      Z80Register_None,
       Z80Register_A,
       Z80Register_BC,
       Z80Register_DE,
@@ -21,6 +22,8 @@ public:
    };
 
    SectionRegisters( Debugger *pDebugger, std::string name, int xp, int yp, int width, int height );
+
+   virtual bool isAlwaysVisible();
 
    virtual bool exec( u8 *pScreenBuffer, bool isCurrentSection );
 

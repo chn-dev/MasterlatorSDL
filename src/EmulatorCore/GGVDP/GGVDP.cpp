@@ -20,7 +20,7 @@ GGVDP *GGVDP::create()
    pVDP->m_screenw = 256;
    pVDP->m_screenh = 192;
    pVDP->m_pLinedata = 0;
-   
+
    return( pVDP );
 }
 
@@ -79,6 +79,18 @@ void GGVDP::reset()
    m_render = true;
 
    forceDirtyTileCache();
+}
+
+
+u8 *GGVDP::vram() const
+{
+   return( m_pVRAM );
+}
+
+
+u8 GGVDP::registerValue( int n ) const
+{
+   return( m_regs[n] );
 }
 
 
@@ -204,7 +216,7 @@ void GGVDP_RenderTile(GGVDP *vdp, int tile) {
 }
 
 void GGVDP_RenderAllTiles(GGVDP *vdp) {
-	
+
 	int i;
 
 	if (!vdp)
@@ -335,7 +347,7 @@ void GGVDP::enableRendering( bool en )
 int GGVDP::saveState( u8 *d )
 {
    int s = 0;
-   
+
    memcpy( &d[s], m_pVRAM, 16384 ); s += 16384;
    memcpy( &d[s], &m_address, sizeof( m_address ) ); s += sizeof( m_address );
    memcpy( &d[s], &m_t, sizeof( m_t ) ); s += sizeof( m_t );

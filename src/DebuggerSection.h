@@ -13,6 +13,8 @@ public:
    virtual void activate( bool ac );
    bool isActivated() const;
 
+   virtual bool isAlwaysVisible() = 0;
+
    bool singleInstructionStep( u8 *pScreenBuffer );
 
    int getXPos() const;
@@ -23,11 +25,11 @@ public:
 
 protected:
    Debugger *debugger() const;
+   std::string m_Name;
 
 private:
    bool m_Activated;
    Debugger *m_pDebugger;
-   std::string m_Name;
    int m_xPos;
    int m_yPos;
    int m_Width;

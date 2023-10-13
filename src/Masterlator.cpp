@@ -129,6 +129,9 @@ int main( int argc, char *argv[] )
          if( pDebugger->isActivated() )
          {
             screenBlank = pDebugger->doDebug( pScreenBuffer );
+         } else
+         {
+            pDebugger->doDebug( pScreenBuffer );
          }
       }
 

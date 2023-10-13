@@ -30,7 +30,7 @@ public:
    bool isGG() const;
    int saveState( u8 *d );
    int loadState( u8 *d );
-   
+
    void writeControl( u8 );
    void writeData( u8 );
    u8 readData();
@@ -48,6 +48,9 @@ public:
    bool paletteChanged();
    Color getColor( int n ) const;
    u16 vcount() const;
+
+   u8 *vram() const;
+   u8 registerValue( int n ) const;
 
 private:
    GGVDP();

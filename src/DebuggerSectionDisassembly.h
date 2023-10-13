@@ -12,6 +12,8 @@ public:
    virtual bool exec( u8 *pScreenBuffer, bool isCurrentSection );
    virtual void activate( bool ac );
 
+   virtual bool isAlwaysVisible();
+
    bool isAtBreakpoint( u16 loc ) const;
 
 private:

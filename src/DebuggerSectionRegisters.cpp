@@ -51,6 +51,12 @@ Debugger::SectionRegisters::SectionRegisters( Debugger *pDebugger, std::string n
 }
 
 
+bool Debugger::SectionRegisters::isAlwaysVisible()
+{
+   return( false );
+}
+
+
 bool Debugger::SectionRegisters::exec( u8 *pScreenBuffer, bool isCurrentSection )
 {
    Section::exec( pScreenBuffer, isCurrentSection );
