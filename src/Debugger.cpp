@@ -144,7 +144,7 @@ bool Debugger::execSections( u8 *pScreenBuffer )
    {
       if( isActivated() || pActiveSection->isAlwaysVisible() )
       {
-         screenBlank = screenBlank || pActiveSection->exec( pScreenBuffer, true );
+         screenBlank = screenBlank || pActiveSection->exec( pScreenBuffer, true && isActivated() );
       }
    }
 
