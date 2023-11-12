@@ -6,6 +6,7 @@
 #include "../defines.h"
 #include <string>
 #include <vector>
+#include <map>
 
 #define FLAG_C    0x01
 #define FLAG_N    0x02
@@ -27,6 +28,7 @@ public:
    public:
       u16 address;
       bool hasBreakpoint;
+      std::string label;
       std::vector<u8> code;
       std::string disassembly;
 
@@ -52,6 +54,7 @@ public:
       virtual void z80_execStart( u16 loc ) = 0;
       virtual void z80_execFinish( u16 loc ) = 0;
       virtual bool z80_break() = 0;
+      virtual std::string z80_locationToLabel( u16 loc ) = 0;
    };
 
    ~Z80();
@@ -69,6 +72,7 @@ public:
    int saveState( u8 *d );
    int loadState( u8 *d );
    std::vector<Z80::Instruction> disassemble( u16 loc, int beforeInstr, int afterInstr );
+   Z80::Instruction disassemble( u16 loc );
 
    union_word getAF() const;
    void setAF( union_word v );
@@ -93,11 +97,10 @@ private:
    std::vector<Z80::Instruction> disassemble( u16 loc, int nInstructions, int *s );
 
    std::vector<Z80::Instruction> disassembleFromToAddress( u16 startLoc, u16 endLoc );
-   Z80::Instruction disassemble( u16 loc );
 
    int illegalInstruction();
    int execInterrupt();
-   int disassemble( u8 *op, char *dest );
+   int disassemble( u16 loc, u8 *op, char *dest );
 
    union_word              m_AF;
    union_word              m_BC;

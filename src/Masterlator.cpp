@@ -96,6 +96,14 @@ int main( int argc, char *argv[] )
 
    Debugger *pDebugger = new Debugger( pMachine );
    pMachine->cpu()->setDebugger( pDebugger );
+   if( config.debug )
+   {
+      if( !config.symbolsFile.empty() )
+      {
+         pDebugger->loadSymbolsFile( config.symbolsFile );
+      }
+      pDebugger->activate( true );
+   }
 
    do
    {

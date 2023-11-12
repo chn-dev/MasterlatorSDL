@@ -51,6 +51,12 @@ Debugger::~Debugger()
 }
 
 
+void Debugger::loadSymbolsFile( std::string fname )
+{
+   sectionDisassembly()->loadSymbolsFile( fname );
+}
+
+
 GGMS *Debugger::machine() const
 {
    return( m_pMachine );
@@ -68,6 +74,12 @@ void Debugger::z80_execFinish( u16 loc )
       return;
 
    m_Break = isAtBreakpoint( loc );
+}
+
+
+std::string Debugger::z80_locationToLabel( u16 loc )
+{
+   return( sectionDisassembly()->locationToLabel( loc ) );
 }
 
 

@@ -100,6 +100,12 @@ GGMS::MemoryLocation::~MemoryLocation()
 }
 
 
+bool GGMS::MemoryLocation::isNull()
+{
+   return( m_MemoryType == GGMS::MemoryType_NONE );
+}
+
+
 bool GGMS::MemoryLocation::operator<( const GGMS::MemoryLocation &other ) const
 {
    if( m_MemoryType == other.m_MemoryType )

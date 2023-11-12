@@ -30,6 +30,7 @@ public:
       ~MemoryLocation();
 
       static std::string toString( MemoryType pt );
+      bool isNull();
 
       bool operator==( const MemoryLocation &other ) const;
       bool operator<( const MemoryLocation &other ) const;

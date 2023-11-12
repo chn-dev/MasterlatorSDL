@@ -7,6 +7,7 @@
 typedef struct Config
 {
    std::string romFile;
+   std::string symbolsFile;
    int xWidth = -1;
    int xHeight = -1;
    int windowWidth = -1;

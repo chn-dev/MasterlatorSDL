@@ -17,11 +17,14 @@ public:
    bool doDebug( u8 *pScreenBuffer );
    bool singleInstructionStep( u8 *pScreenBuffer );
 
+   void loadSymbolsFile( std::string fname );
+
    GGMS *machine() const;
 
    virtual void z80_execStart( u16 loc );
    virtual void z80_execFinish( u16 loc );
    virtual bool z80_break();
+   virtual std::string z80_locationToLabel( u16 loc );
 
 private:
    bool isAtBreakpoint( u16 loc ) const;

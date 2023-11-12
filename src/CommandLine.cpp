@@ -1,3 +1,5 @@
+#include <fstream>
+
 #include "CommandLine.h"
 #include "getopts.h"
 
@@ -20,6 +22,7 @@ int readCommandLine( int argc, char *argv[], Config *pConfig )
       { 13, (char *)"leftkey",         (char *)"Left Key",                                 (char *)"lk", 1 },
       { 14, (char *)"rightkey",        (char *)"Right Key",                                (char *)"rk", 1 },
       { 15, (char *)"debug",           (char *)"Debugger",                                 (char *)"d",  0 },
+      { 16, (char *)"sym",             (char *)"Symbols File",                             (char *)"s",  0 },
       { 0,   NULL,                     NULL,                                               NULL,         0 }
    };
 
@@ -174,6 +177,12 @@ int readCommandLine( int argc, char *argv[], Config *pConfig )
             break;
          }
 
+         case 16: /* Symbols file */
+         {
+            pConfig->symbolsFile = std::string( args );
+            break;
+         }
+
          default:
             break;
       }
@@ -185,6 +194,23 @@ int readCommandLine( int argc, char *argv[], Config *pConfig )
    {
       fprintf( stderr, "Usage: -r romfile\n" );
       return( -1 );
+   }
+
+   if( pConfig->debug && pConfig->symbolsFile.empty() )
+   {
+      std::string f = pConfig->romFile;
+      size_t s = f.rfind( "." );
+      if( s != std::string::npos )
+      {
+         f = f.substr( 0, s ) + ".sym";
+         std::ifstream tst;
+         tst.open( f, std::ifstream::in );
+         if( tst.is_open() )
+         {
+            tst.close();
+            pConfig->symbolsFile = f;
+         }
+      }
    }
 
    return( 0 );

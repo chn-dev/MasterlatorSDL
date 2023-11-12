@@ -54,6 +54,12 @@ std::string Z80::Instruction::toString() const
    sCode.append( " - " );
    sCode.append( disassembly );
 
+/*   std::string l = label;
+   while( l.size() < 16 )
+      l = l + " ";
+   l = l.substr( 0, 16 );
+   sCode = l + " " + sCode;*/
+
    return( sCode );
 }
 
@@ -428,7 +434,7 @@ std::vector<Z80::Z80::Instruction> Z80::disassemble( u16 loc, int beforeInstr, i
       }
 
       char dest[256];
-      int s = disassemble( op, dest );
+      int s = disassemble( loc, op, dest );
       Z80::Instruction instruction;
       instruction.address = loc;
       instruction.disassembly = dest;
@@ -499,7 +505,7 @@ std::vector<Z80::Instruction> Z80::disassemble( u16 loc, int nInstructions )
    } else
    {
       // TODO if result.size() == 0
-      d = result[0];
+     // d = result[0];
    }
 
    return( d );
@@ -511,10 +517,15 @@ std::vector<Z80::Instruction> Z80::disassembleFromToAddress( u16 startLoc, u16 e
    std::vector<Z80::Instruction> result;
 
    u16 loc = startLoc;
-   while( loc < endLoc )
+   while( loc != endLoc )
    {
       Z80::Instruction instr = disassemble( loc );
       result.push_back( instr );
+      u16 nextLoc = loc + instr.code.size();
+      if( loc < endLoc && nextLoc > endLoc )
+      {
+         break;
+      }
       loc += instr.code.size();
    }
 
@@ -537,7 +548,7 @@ Z80::Instruction Z80::disassemble( u16 loc )
       op[j] = m_pMemInterface->z80_readMem( loc + j );
    }
 
-   int size = disassemble( op, dest );
+   int size = disassemble( loc, op, dest );
 
    Z80::Instruction instruction;
    instruction.disassembly = dest;
@@ -571,7 +582,7 @@ std::vector<Z80::Instruction> Z80::disassemble( u16 loc, int nInstructions, int 
    return( result );
 }
 
-int Z80::disassemble( u8 *op, char *dest )
+int Z80::disassemble( u16 loc, u8 *op, char *dest )
 {
    const char *inst;
    unsigned int i, j, l, ofs = 0;
@@ -638,38 +649,147 @@ int Z80::disassemble( u8 *op, char *dest )
       return( 1 );
    }
 
+
+   int startVar = -1;
    for( i = j = 0; i < strlen( inst ); )
    {
-      if( ( ( inst[i] == '%' ) || ( inst[i] == '$' ) ) &&
-            ( inst[i + 1] >= '0' ) && ( inst[i + 1] <= '9' ) )
+      if( startVar < 0 )
       {
-         char t[8];
-         u8 r;
-         u16 v;
-
-         v = inst[i+1]-'0';
-         r = op[v+ofs];
-
-         if( inst[i] == '$' )
+         if( inst[i] == '%' )
          {
-            if( r & 0x80 )
+            startVar = i;
+            i++;
+         } else
+/*         if( ( ( inst[i] == '%' ) || ( inst[i] == '$' ) ) &&
+               ( inst[i + 1] >= '0' ) && ( inst[i + 1] <= '9' ) )
+         {
+            char t[8];
+            u8 r;
+            u16 v;
+
+            v = inst[i+1]-'0';
+            r = op[v+ofs];
+
+            if( inst[i] == '$' )
             {
-               sprintf( t,"-%02X",(-r)&0xff );
+               if( r & 0x80 )
+               {
+                  sprintf( t,"-%02X",(-r)&0xff );
+               } else
+               {
+                  sprintf( t,"+%02X",r );
+               }
             } else
             {
-               sprintf( t,"+%02X",r );
+               sprintf( t, "%02X", r );
             }
-         } else
-         {
-            sprintf( t, "%02X", r );
-         }
 
-         strcpy( &dest[j], t );
-         j += strlen( t );
-         i += 2;
+            strcpy( &dest[j], t );
+            j += strlen( t );
+            i += 2;
+         } else*/
+         {
+            dest[j++] = inst[i++];
+         }
       } else
       {
-         dest[j++] = inst[i++];
+         if( inst[i] == '%' )
+         {
+            int endVar = i;
+
+            std::string name = std::string( inst ).substr( startVar + 1, endVar - startVar - 1 );
+            startVar = endVar = -1;
+
+            if( name.size() == 2 )
+            {
+               if( name[1] >= '0' && name[1] <= '9' )
+               {
+                  int param = name[1] - '0';
+
+                  if( name[0] == 'p' )
+                  {
+                     // Pointer
+                     u16 loc = ( op[param] & 0xff ) | ( ( op[param + 1] << 8 ) & 0xff00 );
+                     std::string label = "";
+                     if( m_pDebuggerInterface )
+                     {
+                        label = m_pDebuggerInterface->z80_locationToLabel( loc );
+                     }
+
+                     if( label.empty() )
+                     {
+                        char tst[8];
+                        sprintf( tst, "%04Xh", loc );
+                        for( int n = 0; n < strlen( tst ); n++ )
+                        {
+                           dest[j++] = tst[n];
+                        }
+                     } else
+                     {
+                        for( int n = 0; n < label.size(); n++ )
+                        {
+                           dest[j++] = label[n];
+                        }
+                     }
+                  } else
+                  if( name[0] == 'w' )
+                  {
+                     u16 word = ( op[param] & 0xff ) | ( ( op[param + 1] << 8 ) & 0xff00 );
+                     char tst[8];
+                     sprintf( tst, "%04X", word );
+                     for( int n = 0; n < strlen( tst ); n++ )
+                     {
+                        dest[j++] = tst[n];
+                     }
+                  } else
+                  if( name[0] == 'b' )
+                  {
+                     u8 byte = op[param] & 0xff;
+                     char tst[8];
+                     sprintf( tst, "%02X", byte );
+                     for( int n = 0; n < strlen( tst ); n++ )
+                     {
+                        dest[j++] = tst[n];
+                     }
+                  } else
+                  if( name[0] == 'r' )
+                  {
+                     u8 byte = op[param] & 0xff;
+                     u16 r = (u16)(s16)(s8)byte;
+                     u16 newloc = loc + r + l;
+                     std::string label = "";
+                     if( m_pDebuggerInterface )
+                     {
+                        label = m_pDebuggerInterface->z80_locationToLabel( newloc );
+                     }
+                     if( label.empty() )
+                     {
+                        char tst[8];
+                        if( byte & 0x80 )
+                        {
+                           sprintf( tst, "-%02Xh",(-byte)&0xff );
+                        } else
+                        {
+                           sprintf( tst, "+%02Xh", byte );
+                        }
+
+                        for( int n = 0; n < strlen( tst ); n++ )
+                        {
+                           dest[j++] = tst[n];
+                        }
+                     } else
+                     {
+                        for( int n = 0; n < label.size(); n++ )
+                        {
+                           dest[j++] = label[n];
+                        }
+                     }
+                  }
+               }
+            }
+         }
+
+         i++;
       }
    }
 
