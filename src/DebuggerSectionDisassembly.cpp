@@ -8,6 +8,46 @@
 
 #define NINSTRUCTIONS 23
 
+static std::vector<std::string> split( std::string s, std::string sep )
+{
+   std::vector<std::string> result;
+   while( s.size() > 0 )
+   {
+      size_t pos = s.find( sep );
+      if( pos == std::string::npos )
+      {
+         result.push_back( s );
+         break;
+      }
+      std::string p = s.substr( 0, pos );
+      result.push_back( p );
+      s = s.substr( pos + sep.size() );
+      if( s.size() == 0 )
+      {
+         result.push_back( s );
+      }
+   }
+
+   return( result );
+}
+
+static std::string trim( std::string s )
+{
+   size_t pos = s.find_first_not_of( " \t" );
+   if( pos != std::string::npos )
+   {
+      s = s.substr( pos );
+   }
+
+   pos = s.find_last_not_of( " \t" );
+   if( pos != std::string::npos )
+   {
+      s = s.substr( 0, pos + 1 );
+   }
+
+   return( s );
+}
+
 
 Debugger::SectionDisassembly::SectionDisassembly( Debugger *pDebugger, std::string name, int xp, int yp, int width, int height ) :
    Section( pDebugger, name, xp, yp, width, height ),
@@ -32,6 +72,14 @@ void Debugger::SectionDisassembly::loadSymbolsFile( std::string fname )
       {
          std::getline( f, line );
 
+         size_t p = line.find( ";" );
+         if( p != std::string::npos )
+         {
+            line = line.substr( 0, p );
+         }
+
+         line = trim( line );
+
          size_t lp = line.find( "[" );
          size_t rp = line.rfind( "]" );
          if( ( lp != std::string::npos ) && ( rp != std::string::npos ) &&
@@ -40,6 +88,37 @@ void Debugger::SectionDisassembly::loadSymbolsFile( std::string fname )
             curSection = line.substr( lp + 1, rp - lp - 1 );
          } else
          {
+            if( curSection == "breakpoints" )
+            {
+               std::vector<std::string> r = split( trim( line ), ":" );
+               if( r.size() == 2 )
+               {
+                  int bank = -1;
+                  try
+                  {
+                     bank = std::stoi( r[0], nullptr, 16 );
+                  } catch( ... )
+                  {
+                     bank = -1;
+                  }
+
+                  int offset = -1;
+                  try
+                  {
+                     offset = std::stoi( r[1], nullptr, 16 );
+                  } catch( ... )
+                  {
+                     offset = -1;
+                  }
+
+                  if( ( bank >= 0 ) && ( bank < 256 ) &&
+                      ( offset >= 0 ) && ( offset < 65536 ) )
+                  {
+                     GGMS::MemoryLocation memLoc = GGMS::MemoryLocation( GGMS::MemoryType_ROM, bank * 0x4000 + offset );
+                     m_Breakpoints.insert( memLoc );
+                  }
+               }
+            } else
             if( curSection == "labels" )
             {
                lp = line.find_first_not_of( " \t\n\r" );
