@@ -39,7 +39,6 @@ int main( int argc, char *argv[] )
 
    config.screenBufferWidth = pMachine->screenWidth();
    config.screenBufferHeight = pMachine->screenHeight();
-
    if( config.debug )
    {
       config.screenBufferWidth = 854;
@@ -144,8 +143,15 @@ int main( int argc, char *argv[] )
       }
 
       // Copy machine screen buffer to main application buffer
-      int xo = ( ( 256 - pMachine->screenWidth() ) / 2 ) + ( getScreen()->width - 256 ) - 10;
-      int yo = ( ( 192 - pMachine->screenHeight() ) / 2 ) + 10;
+      int xo = 0;
+      int yo = 0;
+      if( config.debug )
+      {
+         xo = ( ( 256 - pMachine->screenWidth() ) / 2 ) + ( getScreen()->width - 256 ) - 10;
+         yo = ( ( 192 - pMachine->screenHeight() ) / 2 ) + 10;
+      }
+
+      // Copy pixel data
       for( int y = 0; y < pMachine->screenHeight(); y++ )
       {
          for( int x = 0; x < pMachine->screenWidth(); x++ )
@@ -163,15 +169,18 @@ int main( int argc, char *argv[] )
       }
 
       // Draw frame around the screen output
-      for( int x = xo; x < xo + pMachine->screenWidth(); x++ )
+      if( config.debug )
       {
-         getScreen()->pBuffer[( ( yo - 1 ) * getScreen()->width ) + x] = 129;
-         getScreen()->pBuffer[( ( yo + pMachine->screenHeight() ) * getScreen()->width ) + x] = 129;
-      }
-      for( int y = yo - 1; y < yo + pMachine->screenHeight() + 1; y++ )
-      {
-         getScreen()->pBuffer[( y * getScreen()->width ) + xo - 1] = 129;
-         getScreen()->pBuffer[( y * getScreen()->width ) + xo + pMachine->screenWidth()] = 129;
+         for( int x = xo; x < xo + pMachine->screenWidth(); x++ )
+         {
+            getScreen()->pBuffer[( ( yo - 1 ) * getScreen()->width ) + x] = 129;
+            getScreen()->pBuffer[( ( yo + pMachine->screenHeight() ) * getScreen()->width ) + x] = 129;
+         }
+         for( int y = yo - 1; y < yo + pMachine->screenHeight() + 1; y++ )
+         {
+            getScreen()->pBuffer[( y * getScreen()->width ) + xo - 1] = 129;
+            getScreen()->pBuffer[( y * getScreen()->width ) + xo + pMachine->screenWidth()] = 129;
+         }
       }
 
       // Update the palette
