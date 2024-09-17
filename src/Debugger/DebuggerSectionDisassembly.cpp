@@ -208,7 +208,7 @@ bool Debugger::SectionDisassembly::exec( u8 *pScreenBuffer, bool isCurrentSectio
       Z80::Instruction instr = debugger()->machine()->cpu()->disassemble( pc );
       if( instr.disassembly.rfind( "CALL", 0 ) == 0 )
       {
-         u16 nextPC = pc + instr.code.size();
+         u16 nextPC = pc + (u16)instr.code.size();
          m_NextInstrBreak = nextPC;
          m_NextInstrBreakIsSet = true;
          debugger()->activate( false );
@@ -412,7 +412,7 @@ void Debugger::SectionDisassembly::updateDisassembly( int nInstructions, int cur
       disassembly.push_back( m_Disassembly[i] );
       disassembly[disassembly.size() - 1].label = "";
       if( disassembly[disassembly.size() - 1].address == m_CursorPosition )
-         offsetAtCursor = disassembly.size() - 1;
+         offsetAtCursor = (int)disassembly.size() - 1;
    }
 
    if( offsetAtCursor - cursorPos > 0 )

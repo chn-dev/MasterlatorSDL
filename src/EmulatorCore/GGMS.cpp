@@ -356,7 +356,7 @@ GGMS::MemoryLocation GGMS::addressToReadPage( u16 address )
 
 GGMS::MemoryLocation GGMS::getReadPage( int page )
 {
-   int a = page << 10;
+   unsigned int a = (unsigned int)page << 10;
    MemoryType memType = MemoryType_NONE;
    int offset = 0;
 
@@ -841,10 +841,10 @@ u8 GGMS::z80_in( u8 loc )
          temp = m_pVDP->vcount();
          if( temp > 0xda )
          {
-            return( temp - 6 );
+            return( (u8)( temp - 6 ) );
          } else
          {
-            return( temp );
+            return( (u8)temp );
          }
          break;
 

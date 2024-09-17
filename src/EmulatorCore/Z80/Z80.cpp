@@ -521,12 +521,12 @@ std::vector<Z80::Instruction> Z80::disassembleFromToAddress( u16 startLoc, u16 e
    {
       Z80::Instruction instr = disassemble( loc );
       result.push_back( instr );
-      u16 nextLoc = loc + instr.code.size();
+      u16 nextLoc = loc + (u16)instr.code.size();
       if( loc < endLoc && nextLoc > endLoc )
       {
          break;
       }
-      loc += instr.code.size();
+      loc += (u16)instr.code.size();
    }
 
    if( loc != endLoc )
@@ -571,10 +571,10 @@ std::vector<Z80::Instruction> Z80::disassemble( u16 loc, int nInstructions, int 
    {
       Z80::Instruction instruction = disassemble( loc );;
 
-      loc += instruction.code.size();
+      loc += (u16)instruction.code.size();
       if( s )
       {
-         *s += instruction.code.size();
+         *s += (int)instruction.code.size();
       }
       result.push_back( instruction );
    }

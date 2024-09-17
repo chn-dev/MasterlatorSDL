@@ -124,7 +124,7 @@
 #define write(a,b)  (m_pMemInterface->z80_writeMem(a,b))
 
 #define read16(a) (read(a) | (read(a + 1) << 8))
-#define write16(a,b)  write(a,b);write(a + 1, b >> 8);
+#define write16(a,b)  write(a,(u8)(b));write(a + 1, (u8)(b >> 8));
 #define in(a)   (m_pMemInterface->z80_in(a))
 #define out(a,b)  (m_pMemInterface->z80_out(a,b))
 
@@ -163,8 +163,8 @@
 
 
 #define PUSH_PC \
-			write(cpu_getSP - 2, cpu_getPC); \
-			write(cpu_getSP - 1, cpu_getPC >> 8); \
+			write(cpu_getSP - 2, (u8)(cpu_getPC)); \
+			write(cpu_getSP - 1, (u8)(cpu_getPC >> 8)); \
 			cpu_setSP(cpu_getSP - 2);
 
 /*

@@ -78,7 +78,7 @@ bool Debugger::SectionMemoryDump::exec( u8 *pScreenBuffer, bool isCurrentSection
       {
          m_n++;
          if( m_n >= m_Regs.size() )
-            m_n = m_Regs.size() - 1;
+            m_n = (int)m_Regs.size() - 1;
          m_Offset = 0;
       }
    }

@@ -6,7 +6,8 @@
     case 0x21:  cpu_setHL(read16(cpu_getPC + 1));cpu_setPC(cpu_getPC + 3);CYCLES(10);break;  /*  00100001 LD HL,nn */
     case 0x31:  cpu_setSP(read16(cpu_getPC + 1));cpu_setPC(cpu_getPC + 3);CYCLES(10);break; /*  00110001 LD SP,nn */
 
-    case 0x22:  dw.aword = read16(cpu_getPC + 1);write16(dw.aword,cpu_getHL);cpu_setPC(cpu_getPC + 3);CYCLES(16);break;  /*  00100010 LD (mm),HL */
+    case 0x22: 
+    dw.aword = read16(cpu_getPC + 1);write16(dw.aword,cpu_getHL);cpu_setPC(cpu_getPC + 3);CYCLES(16);break;  /*  00100010 LD (mm),HL */
     case 0x2a:  dw.aword = read16(cpu_getPC + 1);cpu_setHL(read16(dw.aword));cpu_setPC(cpu_getPC + 3);CYCLES(16);break; /*  00101010 LD HL,(mm) */
 
     case 0x02:  write(cpu_getBC,cpu_getA);cpu_setPC(cpu_getPC + 1);CYCLES(7);break; /*  00000010 LD (BC),A */

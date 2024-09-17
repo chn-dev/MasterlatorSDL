@@ -177,7 +177,7 @@ bool Debugger::doDebug( u8 *pScreenBuffer )
       {
          m_CurrentSection--;
          if( m_CurrentSection < 0 )
-            m_CurrentSection = m_Sections.size() - 1;
+            m_CurrentSection = (int)m_Sections.size() - 1;
       } else
       {
          m_CurrentSection++;

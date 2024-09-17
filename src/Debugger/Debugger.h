@@ -3,7 +3,7 @@
 
 #include <set>
 #include <map>
-#include "EmulatorCore/GGMS.h"
+#include <EmulatorCore/GGMS.h>
 
 class Debugger : public Z80::DebuggerInterface
 {

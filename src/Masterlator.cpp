@@ -2,7 +2,7 @@
 #include "Font.h"
 #include "CommandLine.h"
 #include "ArchSDL.h"
-#include "Debugger.h"
+#include "Debugger/Debugger.h"
 
 #include <string>
 #include <stdio.h>
