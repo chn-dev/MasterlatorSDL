@@ -1,3 +1,22 @@
+/*******************************************************************************
+ *  Copyright (c) 2024 Christian Nowak <chnowak@web.de>                        *
+ *   This file is part of Masterlator.                                         *
+ *                                                                             *
+ *  Masterlator is free software: you can redistribute it and/or modify it     *
+ *  under the terms of the GNU General Public License as published by the Free *
+ *  Software Foundation, either version 3 of the License, or (at your option)  *
+ *  any later version.                                                         *
+ *                                                                             *
+ *  Masterlator is distributed in the hope that it will be useful, but         *
+ *  WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY *
+ *  or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License    *
+ *  for more details.                                                          *
+ *                                                                             *
+ *  You should have received a copy of the GNU General Public License along    *
+ *  with Masterlator. If not, see <https://www.gnu.org/licenses/>.             *
+ *******************************************************************************/
+
+
 #include "defines.h"
 #include "crc32.h"
 #include "smsscan.h"
@@ -5,7 +24,7 @@
 
 static u32 crc32tab[256] = {
 
-	0x00000000, 0x77073096, 0xEE0E612C, 0x990951BA,
+  0x00000000, 0x77073096, 0xEE0E612C, 0x990951BA,
   0x076DC419, 0x706AF48F, 0xE963A535, 0x9E6495A3,
   0x0EDB8832, 0x79DCB8A4, 0xE0D5E91E, 0x97D2D988,
   0x09B64C2B, 0x7EB17CBD, 0xE7B82D07, 0x90BF1D91,
