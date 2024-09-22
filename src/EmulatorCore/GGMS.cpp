@@ -17,7 +17,13 @@
  *******************************************************************************/
 
 
-/* GGMS.c */
+/*----------------------------------------------------------------------------*/
+/*!
+\file GGMS.cpp
+\author Christian Nowak <chnowak@web.de>
+\brief Implementation of the class GGMS (main emulator)
+*/
+/*----------------------------------------------------------------------------*/
 #include <sys/types.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -33,6 +39,15 @@ extern int debug;
 
 #define CYCLES_PER_LINE /*227*/253
 
+
+/*----------------------------------------------------------------------------*/
+/*! 2024-09-17
+Read a complete file into memory.
+\param fname The file name
+\param size Pointer to an integer where the file size will be stored
+\return Pointer to the contents of the file. Must be freed after usage.
+*/
+/*----------------------------------------------------------------------------*/
 static u8 *readFile(const char *fname, int *size)
 {
    FILE *fh;
@@ -51,6 +66,16 @@ static u8 *readFile(const char *fname, int *size)
    return( d );
 }
 
+
+/*----------------------------------------------------------------------------*/
+/*! 2024-09-17
+Wrote a portion of the memory to a file.
+\param fname The file name
+\param data Pointer to the memory
+\param size Memory size in bytes
+\return 0 on success
+*/
+/*----------------------------------------------------------------------------*/
 static int writeFile( const char *fname, u8 *data, int size )
 {
    FILE *fh;
@@ -66,7 +91,14 @@ static int writeFile( const char *fname, u8 *data, int size )
 }
 
 
-/*int stricmp(char *, char *);*/
+/*----------------------------------------------------------------------------*/
+/*! 2024-09-17
+Case insensitive comparison of two strings.
+\param a First string
+\param b Second string
+\return 0 if the strings are equal
+*/
+/*----------------------------------------------------------------------------*/
 static int stri_cmp( const char *a, const char *b )
 {
    size_t l, i;
@@ -84,6 +116,13 @@ static int stri_cmp( const char *a, const char *b )
 }
 
 
+/*----------------------------------------------------------------------------*/
+/*! 2024-09-17
+Determine the size of a file.
+\param fname The file name
+\return file size in bytes or -1 on failure
+*/
+/*----------------------------------------------------------------------------*/
 static int fsize( const char *fname )
 {
    FILE *f;
@@ -100,6 +139,12 @@ static int fsize( const char *fname )
 }
 
 
+
+/*----------------------------------------------------------------------------*/
+/*! 2024-09-17
+Constructor
+*/
+/*----------------------------------------------------------------------------*/
 GGMS::MemoryLocation::MemoryLocation() :
    m_MemoryType( GGMS::MemoryType_NONE ),
    m_Offset( 0 )
@@ -107,6 +152,11 @@ GGMS::MemoryLocation::MemoryLocation() :
 }
 
 
+/*----------------------------------------------------------------------------*/
+/*! 2024-09-17
+Constructor
+*/
+/*----------------------------------------------------------------------------*/
 GGMS::MemoryLocation::MemoryLocation( MemoryType memType, int offset ) :
    m_MemoryType( memType ),
    m_Offset( offset )
@@ -114,17 +164,30 @@ GGMS::MemoryLocation::MemoryLocation( MemoryType memType, int offset ) :
 }
 
 
+/*----------------------------------------------------------------------------*/
+/*! 2024-09-17
+Destructor
+*/
+/*----------------------------------------------------------------------------*/
 GGMS::MemoryLocation::~MemoryLocation()
 {
 }
 
 
+/*----------------------------------------------------------------------------*/
+/*! 2024-09-17
+*/
+/*----------------------------------------------------------------------------*/
 bool GGMS::MemoryLocation::isNull()
 {
    return( m_MemoryType == GGMS::MemoryType_NONE );
 }
 
 
+/*----------------------------------------------------------------------------*/
+/*! 2024-09-17
+*/
+/*----------------------------------------------------------------------------*/
 bool GGMS::MemoryLocation::operator<( const GGMS::MemoryLocation &other ) const
 {
    if( m_MemoryType == other.m_MemoryType )
@@ -137,12 +200,20 @@ bool GGMS::MemoryLocation::operator<( const GGMS::MemoryLocation &other ) const
 }
 
 
+/*----------------------------------------------------------------------------*/
+/*! 2024-09-17
+*/
+/*----------------------------------------------------------------------------*/
 bool GGMS::MemoryLocation::operator==( const GGMS::MemoryLocation &other ) const
 {
    return( ( m_MemoryType == other.m_MemoryType ) && ( m_Offset == other.m_Offset ) );
 }
 
 
+/*----------------------------------------------------------------------------*/
+/*! 2024-09-17
+*/
+/*----------------------------------------------------------------------------*/
 std::string GGMS::MemoryLocation::toString( MemoryType pt )
 {
    switch( pt )
@@ -165,23 +236,46 @@ std::string GGMS::MemoryLocation::toString( MemoryType pt )
    }
 }
 
+
+/*----------------------------------------------------------------------------*/
+/*! 2024-09-17
+*/
+/*----------------------------------------------------------------------------*/
 int GGMS::MemoryLocation::offset() const
 {
    return( m_Offset );
 }
 
 
+/*----------------------------------------------------------------------------*/
+/*! 2024-09-17
+*/
+/*----------------------------------------------------------------------------*/
 GGMS::MemoryType GGMS::MemoryLocation::memoryType() const
 {
    return( m_MemoryType );
 }
 
 
+
+/*----------------------------------------------------------------------------*/
+/*! 2024-09-17
+Constructor
+*/
+/*----------------------------------------------------------------------------*/
 GGMS::GGMS()
 {
 }
 
 
+/*----------------------------------------------------------------------------*/
+/*! 2024-09-17
+Create a GGMS instance from a ROM file.
+\param fname The ROM's file name
+\param debug Indicates the debug mode
+\return A GGMS instance or nullptr on failure
+*/
+/*----------------------------------------------------------------------------*/
 GGMS *GGMS::create( const char *fname, bool debug )
 {
    GGMS *pMachine = new GGMS();
@@ -283,6 +377,11 @@ GGMS *GGMS::create( const char *fname, bool debug )
 }
 
 
+/*----------------------------------------------------------------------------*/
+/*! 2024-09-17
+Destructor
+*/
+/*----------------------------------------------------------------------------*/
 GGMS::~GGMS()
 {
    if( m_pSND )
@@ -323,6 +422,13 @@ GGMS::~GGMS()
 }
 
 
+/*----------------------------------------------------------------------------*/
+/*! 2024-09-17
+Translate a 16bit address to an offset into ROM according to the bank selection registers
+\param a The 16bit address
+\return An offset into ROM
+*/
+/*----------------------------------------------------------------------------*/
 int GGMS::addy2ROM( u16 a )
 {
    u32 i = ( ( ( (int)m_pBanks[( ( a >> 14 ) + 1 ) & 3] ) & ( ( m_romsize >> 14 ) - 1 ) ) << 14 ) + ( (int)a & 16383 );
@@ -336,6 +442,13 @@ int GGMS::addy2ROM( u16 a )
 }
 
 
+/*----------------------------------------------------------------------------*/
+/*! 2024-09-17
+Get a memory pointer from a MemoryLocation object
+\param memLoc
+\return Pointer to the memory or nullptr on failure
+*/
+/*----------------------------------------------------------------------------*/
 u8 *GGMS::toPointer( const MemoryLocation &memLoc )
 {
    u8 *pPointer = 0;
@@ -366,6 +479,13 @@ u8 *GGMS::toPointer( const MemoryLocation &memLoc )
 }
 
 
+/*----------------------------------------------------------------------------*/
+/*! 2024-09-18
+Translate a 16bit address to a MemoryLocation, according to the current banking config.
+\param address The 16bit address
+\return The MemoryLocation
+*/
+/*----------------------------------------------------------------------------*/
 GGMS::MemoryLocation GGMS::addressToReadPage( u16 address )
 {
    MemoryLocation ml = m_ReadPages[address >> 10];
@@ -373,6 +493,13 @@ GGMS::MemoryLocation GGMS::addressToReadPage( u16 address )
 }
 
 
+/*----------------------------------------------------------------------------*/
+/*! 2024-09-18
+Translate a page number to a MemoryLocation (with offset = 0)
+\param page The page number
+\return The MemoryLocation
+*/
+/*----------------------------------------------------------------------------*/
 GGMS::MemoryLocation GGMS::getReadPage( int page )
 {
    unsigned int a = (unsigned int)page << 10;
@@ -419,6 +546,12 @@ GGMS::MemoryLocation GGMS::getReadPage( int page )
 }
 
 
+/*----------------------------------------------------------------------------*/
+/*! 2024-09-18
+Update internal page buffers for a specific page number
+\param page The page number
+*/
+/*----------------------------------------------------------------------------*/
 void GGMS::updatePage( int page )
 {
    if( page == 0 )
@@ -433,6 +566,11 @@ void GGMS::updatePage( int page )
 }
 
 
+/*----------------------------------------------------------------------------*/
+/*! 2024-09-18
+Update internal page buffers for all page numbers
+*/
+/*----------------------------------------------------------------------------*/
 void GGMS::updateAllPages()
 {
    for( int i = 0; i < 64; i++ )
@@ -442,6 +580,11 @@ void GGMS::updateAllPages()
 }
 
 
+/*----------------------------------------------------------------------------*/
+/*! 2024-09-18
+System reset
+*/
+/*----------------------------------------------------------------------------*/
 void GGMS::reset()
 {
    m_cyclesPerLine = CYCLES_PER_LINE;
@@ -477,6 +620,17 @@ void GGMS::reset()
 }
 
 
+/*----------------------------------------------------------------------------*/
+/*! 2024-09-18
+Execute a single Z80 instruction.
+\param pDisplayBuffer
+\param displayBufferWidth
+\param displayBufferHeight
+\param displayBufferXOfs
+\param displayBufferYOfs
+\return true if a complete screen frame has been finished rendering
+*/
+/*----------------------------------------------------------------------------*/
 bool GGMS::singleInstructionStep( u8 *pDisplayBuffer, int displayBufferWidth, int displayBufferHeight, int displayBufferXOfs, int displayBufferYOfs )
 {
    bool finishedFrame = false;
@@ -521,6 +675,17 @@ bool GGMS::singleInstructionStep( u8 *pDisplayBuffer, int displayBufferWidth, in
 }
 
 
+/*----------------------------------------------------------------------------*/
+/*! 2024-09-18
+Run the machine for one raster line.
+\param pDisplayBuffer
+\param displayBufferWidth
+\param displayBufferHeight
+\param displayBufferXOfs
+\param displayBufferYOfs
+\return true if a complete screen frame has been finished rendering
+*/
+/*----------------------------------------------------------------------------*/
 bool GGMS::run( u8 *pDisplayBuffer, int displayBufferWidth, int displayBufferHeight, int displayBufferXOfs, int displayBufferYOfs )
 {
    if( m_pause )
@@ -554,12 +719,27 @@ bool GGMS::run( u8 *pDisplayBuffer, int displayBufferWidth, int displayBufferHei
 }
 
 
+/*----------------------------------------------------------------------------*/
+/*! 2024-09-18
+\return true if the current Z80 CPU's instruction pointer is at a breakpoint
+*/
+/*----------------------------------------------------------------------------*/
 bool GGMS::isAtBreakpoint() const
 {
    return( m_pCPU->isAtBreakpoint() );
 }
 
 
+/*----------------------------------------------------------------------------*/
+/*! 2024-09-18
+Run the machine to complete a whole display frame.
+\param pDisplayBuffer
+\param displayBufferWidth
+\param displayBufferHeight
+\param displayBufferXOfs
+\param displayBufferYOfs
+*/
+/*----------------------------------------------------------------------------*/
 void GGMS::renderFrame( u8 *pDisplayBuffer, int displayBufferWidth, int displayBufferHeight, int displayBufferXOfs, int displayBufferYOfs )
 {
    while( !run( pDisplayBuffer, displayBufferWidth, displayBufferHeight, displayBufferXOfs, displayBufferYOfs ) )
@@ -579,12 +759,27 @@ void GGMS::renderFrame( u8 *pDisplayBuffer, int displayBufferWidth, int displayB
 }
 
 
+/*----------------------------------------------------------------------------*/
+/*! 2024-09-18
+Render audio
+\param pBuffer The audio buffer to render to. Assumed to be unsigned 16bit, mono
+\param numSamples Number of samples to render
+\param freq The sampling frequency in Hz
+*/
+/*----------------------------------------------------------------------------*/
 void GGMS::renderAudio( void *pBuffer, int numSamples, int freq )
 {
    m_pSND->cycle( freq, (u16*)pBuffer, numSamples );
 }
 
 
+/*----------------------------------------------------------------------------*/
+/*! 2024-09-18
+Retrieve color information from the palette
+\param n The index within the palette (0..31)
+\return The color information
+*/
+/*----------------------------------------------------------------------------*/
 const GGVDP::Color &GGMS::getColor( int n ) const
 {
    if( n < 0 )
@@ -596,6 +791,14 @@ const GGVDP::Color &GGMS::getColor( int n ) const
    return( m_Palette[n] );
 }
 
+
+/*----------------------------------------------------------------------------*/
+/*! 2024-09-18
+Save the complete system's state to a file
+\param fname The file name
+\return 0 on success or -1 on failure
+*/
+/*----------------------------------------------------------------------------*/
 int GGMS::saveState( const char *fname )
 {
    u8 temp;
@@ -632,6 +835,13 @@ int GGMS::saveState( const char *fname )
 }
 
 
+/*----------------------------------------------------------------------------*/
+/*! 2024-09-18
+Load the complete system's state from a file
+\param fname The file name
+\return 0 on success or -1 on failure
+*/
+/*----------------------------------------------------------------------------*/
 int GGMS::loadState( const char *fname )
 {
    u8 *d;
@@ -677,6 +887,13 @@ int GGMS::loadState( const char *fname )
 }
 
 
+/*----------------------------------------------------------------------------*/
+/*! 2024-09-18
+Save the contents of the battery backed SRAM to a file
+\param fname The file name
+\return 0 on success or -1 on failure
+*/
+/*----------------------------------------------------------------------------*/
 int GGMS::saveSRAM( const char *fname )
 {
    if( writeFile( fname, m_pSRAM, 32768 ) < 0 )
@@ -690,6 +907,13 @@ int GGMS::saveSRAM( const char *fname )
 }
 
 
+/*----------------------------------------------------------------------------*/
+/*! 2024-09-18
+Load the contents of the battery backed SRAM from a file
+\param fname The file name
+\return 0 on success or -1 on failure
+*/
+/*----------------------------------------------------------------------------*/
 int GGMS::loadSRAM( const char *fname )
 {
    u8 *sram;
@@ -715,12 +939,21 @@ int GGMS::loadSRAM( const char *fname )
 }
 
 
+/*----------------------------------------------------------------------------*/
+/*! 2024-09-18
+\return true if the SRAM has been written to
+*/
+/*----------------------------------------------------------------------------*/
 bool GGMS::sramChanged() const
 {
    return( m_sram_changed );
 }
 
 
+/*----------------------------------------------------------------------------*/
+/*! 2024-09-18
+*/
+/*----------------------------------------------------------------------------*/
 void GGMS::enableBIOS()
 {
    m_bios_en = true;
@@ -728,6 +961,10 @@ void GGMS::enableBIOS()
 }
 
 
+/*----------------------------------------------------------------------------*/
+/*! 2024-09-18
+*/
+/*----------------------------------------------------------------------------*/
 void GGMS::disableBIOS()
 {
    m_bios_en = false;
@@ -736,6 +973,12 @@ void GGMS::disableBIOS()
 }
 
 
+/*----------------------------------------------------------------------------*/
+/*! 2024-09-21
+Set state of the left DPAD button of player 1
+\param b true if pressed
+*/
+/*----------------------------------------------------------------------------*/
 void GGMS::setP1LeftButton( bool b )
 {
    if( b )
@@ -749,6 +992,12 @@ void GGMS::setP1LeftButton( bool b )
 }
 
 
+/*----------------------------------------------------------------------------*/
+/*! 2024-09-21
+Set state of the right DPAD button of player 1
+\param b true if pressed
+*/
+/*----------------------------------------------------------------------------*/
 void GGMS::setP1RightButton( bool b )
 {
    if( b )
@@ -762,6 +1011,12 @@ void GGMS::setP1RightButton( bool b )
 }
 
 
+/*----------------------------------------------------------------------------*/
+/*! 2024-09-21
+Set state of the up DPAD button of player 1
+\param b true if pressed
+*/
+/*----------------------------------------------------------------------------*/
 void GGMS::setP1UpButton( bool b )
 {
    if( b )
@@ -775,6 +1030,12 @@ void GGMS::setP1UpButton( bool b )
 }
 
 
+/*----------------------------------------------------------------------------*/
+/*! 2024-09-21
+Set state of the down DPAD button of player 1
+\param b true if pressed
+*/
+/*----------------------------------------------------------------------------*/
 void GGMS::setP1DownButton( bool b )
 {
    if( b )
@@ -788,36 +1049,72 @@ void GGMS::setP1DownButton( bool b )
 }
 
 
+/*----------------------------------------------------------------------------*/
+/*! 2024-09-21
+Set state of the A button of player 1
+\param a true if pressed
+*/
+/*----------------------------------------------------------------------------*/
 void GGMS::setP1AButton( bool a )
 {
    m_p1_keys[4] = ( a ? 0 : 1 );
 }
 
 
+/*----------------------------------------------------------------------------*/
+/*! 2024-09-21
+Set state of the B button of player 1
+\param b true if pressed
+*/
+/*----------------------------------------------------------------------------*/
 void GGMS::setP1BButton( bool b )
 {
    m_p1_keys[5] = ( b ? 0 : 1 );
 }
 
 
+/*----------------------------------------------------------------------------*/
+/*! 2024-09-21
+Set state of the start button of player 1
+\param start true if pressed
+*/
+/*----------------------------------------------------------------------------*/
 void GGMS::setP1StartButton( bool start )
 {
    m_p1_keys[6] = ( start ? 0 : 1 );
 }
 
 
+/*----------------------------------------------------------------------------*/
+/*! 2024-09-21
+\return The width in pixels of the system screen (256 in SMS mode, 160 in GG mode)
+*/
+/*----------------------------------------------------------------------------*/
 int GGMS::screenWidth() const
 {
    return( m_pVDP->screenWidth() );
 }
 
 
+/*----------------------------------------------------------------------------*/
+/*! 2024-09-21
+\return The width in pixels of the system screen (192 in SMS mode, 144 in GG mode)
+*/
+/*----------------------------------------------------------------------------*/
 int GGMS::screenHeight() const
 {
    return( m_pVDP->screenHeight() );
 }
 
 
+/*----------------------------------------------------------------------------*/
+/*! 2024-09-21
+This is a callback function called by the Z80 core when it tries to input data from 
+a specific port.
+\param loc The 8bit port number to read data from
+\return The 8bit data value
+*/
+/*----------------------------------------------------------------------------*/
 u8 GGMS::z80_in( u8 loc )
 {
    u16 temp;
@@ -903,6 +1200,14 @@ u8 GGMS::z80_in( u8 loc )
 }
 
 
+/*----------------------------------------------------------------------------*/
+/*! 2024-09-21
+This is a callback function called by the Z80 core when it tries to output data to 
+a specific port.
+\param loc The 8bit port number to write data to
+\param d The 8bit data value to be written
+*/
+/*----------------------------------------------------------------------------*/
 void GGMS::z80_out( u8 loc, u8 d )
 {
    switch( loc )
@@ -949,14 +1254,29 @@ void GGMS::z80_out( u8 loc, u8 d )
 }
 
 
+/*----------------------------------------------------------------------------*/
+/*! 2024-09-21
+This is a callback function called by the Z80 core when it reads data from memory.
+\param loc The 16bit memory address
+\return The 8bit data value
+*/
+/*----------------------------------------------------------------------------*/
 u8 GGMS::z80_readMem( u16 loc ) const
 {
    return( m_pPages[loc >> 10][loc & 0x3ff] );
 }
 
 
+/*----------------------------------------------------------------------------*/
+/*! 2024-09-22
+This is a callback function called by the Z80 core when it writes data to memory.
+\param loc The 16bit memory address
+\param d The 8bit data value to be written
+*/
+/*----------------------------------------------------------------------------*/
 void GGMS::z80_writeMem( u16 loc, u8 d )
 {
+   
    u16 a = (u16)loc & 0xffff;
    if( a >= 0xc000 )
    {
@@ -1003,12 +1323,22 @@ void GGMS::z80_writeMem( u16 loc, u8 d )
 }
 
 
+/*----------------------------------------------------------------------------*/
+/*! 2024-09-22
+\return The Z80 CPU object
+*/
+/*----------------------------------------------------------------------------*/
 Z80 *GGMS::cpu() const
 {
    return( m_pCPU );
 }
 
 
+/*----------------------------------------------------------------------------*/
+/*! 2024-09-22
+\return The VDP object
+*/
+/*----------------------------------------------------------------------------*/
 GGVDP *GGMS::vdp() const
 {
    return( m_pVDP );

@@ -17,6 +17,13 @@
  *******************************************************************************/
 
 
+/*----------------------------------------------------------------------------*/
+/*!
+\file crc32.cpp
+\author Christian Nowak <chnowak@web.de>
+\brief Functions for getting game information from the ROM's crc32 checksum
+*/
+/*----------------------------------------------------------------------------*/
 #include "defines.h"
 #include "crc32.h"
 #include "smsscan.h"

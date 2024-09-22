@@ -17,6 +17,13 @@
  *******************************************************************************/
 
 
+/*----------------------------------------------------------------------------*/
+/*!
+\file CommandLine.cpp
+\author Christian Nowak <chnowak@web.de>
+\brief This file implements command line functions.
+*/
+/*----------------------------------------------------------------------------*/
 #include <fstream>
 
 #include "CommandLine.h"
