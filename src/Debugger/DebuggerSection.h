@@ -17,11 +17,24 @@
  *******************************************************************************/
 
 
+/*----------------------------------------------------------------------------*/
+/*!
+\file DebuggerSection.h
+\author Christian Nowak <chnowak@web.de>
+\brief Any debugger sections should be derived from the DebuggerSection class.
+*/
+/*----------------------------------------------------------------------------*/
 #ifndef __DEBUGGERSECTION_H__
 #define __DEBUGGERSECTION_H__
 
 #include "Debugger.h"
 
+/*----------------------------------------------------------------------------*/
+/*!
+\class DebuggerSection
+\date  2024-09-23
+*/
+/*----------------------------------------------------------------------------*/
 class Debugger::Section
 {
 public:

@@ -17,6 +17,13 @@
  *******************************************************************************/
 
 
+/*----------------------------------------------------------------------------*/
+/*!
+\file DebuggerDisassembly.h
+\author Christian Nowak <chnowak@web.de>
+\brief Implementation of the disassembly section.
+*/
+/*----------------------------------------------------------------------------*/
 #include <fstream>
 
 #include "Debugger.h"
@@ -27,6 +34,14 @@
 
 #define NINSTRUCTIONS 23
 
+/*----------------------------------------------------------------------------*/
+/*! 2024-09-23
+String split
+\param s The string to split
+\param sep The separator
+\param Vector of separated strings
+*/
+/*----------------------------------------------------------------------------*/
 static std::vector<std::string> split( std::string s, std::string sep )
 {
    std::vector<std::string> result;
@@ -50,6 +65,14 @@ static std::vector<std::string> split( std::string s, std::string sep )
    return( result );
 }
 
+
+/*----------------------------------------------------------------------------*/
+/*! 2024-09-23
+Remove leading and trailing white space characters
+\param s
+\return The string with removed leading and trailing white space characters
+*/
+/*----------------------------------------------------------------------------*/
 static std::string trim( std::string s )
 {
    size_t pos = s.find_first_not_of( " \t" );
@@ -68,6 +91,17 @@ static std::string trim( std::string s )
 }
 
 
+/*----------------------------------------------------------------------------*/
+/*! 2024-09-23
+Constructor
+\param pDebugger Pointer to the debugger object
+\param name The section's name
+\param xp The section's x position
+\param yp The section's y position
+\param width The section's width
+\param height The section's height
+*/
+/*----------------------------------------------------------------------------*/
 Debugger::SectionDisassembly::SectionDisassembly( Debugger *pDebugger, std::string name, int xp, int yp, int width, int height ) :
    Section( pDebugger, name, xp, yp, width, height ),
    m_CursorPosition( 0 ),
@@ -78,6 +112,12 @@ Debugger::SectionDisassembly::SectionDisassembly( Debugger *pDebugger, std::stri
 }
 
 
+/*----------------------------------------------------------------------------*/
+/*! 2024-09-23
+Load a wla-dx compatible .sym file
+\param fname The symbols file name
+*/
+/*----------------------------------------------------------------------------*/
 void Debugger::SectionDisassembly::loadSymbolsFile( std::string fname )
 {
    std::ifstream f;
@@ -195,12 +235,26 @@ void Debugger::SectionDisassembly::loadSymbolsFile( std::string fname )
 }
 
 
+/*----------------------------------------------------------------------------*/
+/*! 2024-09-23
+\return true if the section should be visible even if the debugger is inactive
+*/
+/*----------------------------------------------------------------------------*/
 bool Debugger::SectionDisassembly::isAlwaysVisible()
 {
    return( false );
 }
 
 
+/*----------------------------------------------------------------------------*/
+/*! 2024-09-23
+Execute the section. This implementation of exec() only draws borders around the section 
+and should be overriden.
+\param pScreenBuffer Pointer to the output screen buffer
+\param isCurrentSection true if this is the currently selected section
+\return true if the screen shall be blanked
+*/
+/*----------------------------------------------------------------------------*/
 bool Debugger::SectionDisassembly::exec( u8 *pScreenBuffer, bool isCurrentSection )
 {
    Section::exec( pScreenBuffer, isCurrentSection );
@@ -294,6 +348,15 @@ bool Debugger::SectionDisassembly::exec( u8 *pScreenBuffer, bool isCurrentSectio
 }
 
 
+/*----------------------------------------------------------------------------*/
+/*! 2024-09-23
+Based on a given the memory address of a machine instruction, calculate the address of 
+a number of instructions ahead.
+\param curPC Memory address of an instruction
+\param step Number of instructions ahead
+\return Address of instruction #step ahead of the instruction at curPC
+*/
+/*----------------------------------------------------------------------------*/
 u16 Debugger::SectionDisassembly::getNextPC( u16 curPC, int step )
 {
    int curOffset = -1;
@@ -322,6 +385,13 @@ u16 Debugger::SectionDisassembly::getNextPC( u16 curPC, int step )
 }
 
 
+/*----------------------------------------------------------------------------*/
+/*! 2024-09-23
+Print the current disassembly into the output screen buffer.
+\param x X Position
+\param y Y Position
+*/
+/*----------------------------------------------------------------------------*/
 void Debugger::SectionDisassembly::printDisassembly( int x, int y ) const
 {
    for( int i = 0; i < m_Disassembly.size(); i++ )
@@ -348,6 +418,12 @@ void Debugger::SectionDisassembly::printDisassembly( int x, int y ) const
 }
 
 
+/*----------------------------------------------------------------------------*/
+/*! 2024-09-23
+\param loc A 16bit memory address
+\return true if a breakpoint exists at the givem memory location
+*/
+/*----------------------------------------------------------------------------*/
 bool Debugger::SectionDisassembly::isAtBreakpoint( u16 loc ) const
 {
    GGMS::MemoryLocation ml = debugger()->machine()->addressToReadPage( loc );
@@ -362,6 +438,12 @@ bool Debugger::SectionDisassembly::isAtBreakpoint( u16 loc ) const
 }
 
 
+/*----------------------------------------------------------------------------*/
+/*! 2024-09-23
+De/activate the section
+\param ac true to activate
+*/
+/*----------------------------------------------------------------------------*/
 void Debugger::SectionDisassembly::activate( bool ac )
 {
    if( !isActivated() && ac )
@@ -375,6 +457,13 @@ void Debugger::SectionDisassembly::activate( bool ac )
 }
 
 
+/*----------------------------------------------------------------------------*/
+/*! 2024-09-23
+Retrieve a label for a given memory address (as imported from a symbols file)
+\param loc The 16bit address
+\return The label or an empty string if there is none
+*/
+/*----------------------------------------------------------------------------*/
 std::string Debugger::SectionDisassembly::locationToLabel( u16 loc )
 {
    std::string label = "";
@@ -388,6 +477,14 @@ std::string Debugger::SectionDisassembly::locationToLabel( u16 loc )
 }
 
 
+/*----------------------------------------------------------------------------*/
+/*! 2024-09-23
+Update the disassembly for the display
+\param nInstructions The total number of instructions to disassemble
+\param cursorPos Position of the cursor (0..nInstructions-1)
+\return false
+*/
+/*----------------------------------------------------------------------------*/
 void Debugger::SectionDisassembly::updateDisassembly( int nInstructions, int cursorPos )
 {
    /* cursorPos: at instr number, start counting at 0
@@ -450,8 +547,11 @@ void Debugger::SectionDisassembly::updateDisassembly( int nInstructions, int cur
 }
 
 
+/*----------------------------------------------------------------------------*/
+/*! 2024-09-23
+*/
+/*----------------------------------------------------------------------------*/
 void Debugger::SectionDisassembly::updateDisassembly()
 {
     updateDisassembly( NINSTRUCTIONS, m_CursorOffset );
 }
-

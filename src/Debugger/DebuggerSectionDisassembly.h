@@ -17,6 +17,13 @@
  *******************************************************************************/
 
 
+/*----------------------------------------------------------------------------*/
+/*!
+\file DebuggerSectionDisassembly.h
+\author Christian Nowak <chnowak@web.de>
+\brief Implementation of the disassembly section.
+*/
+/*----------------------------------------------------------------------------*/
 #ifndef __DEBUGGERSECTIONDISASSEMBLY_H__
 #define __DEBUGGERSECTIONDISASSEMBLY_H__
 
@@ -24,6 +31,12 @@
 #include "DebuggerSection.h"
 #include "EmulatorCore/GGMS.h"
 
+/*----------------------------------------------------------------------------*/
+/*!
+\class SectionDisassembly
+\date  2024-09-23
+*/
+/*----------------------------------------------------------------------------*/
 class Debugger::SectionDisassembly : public Section
 {
 public:

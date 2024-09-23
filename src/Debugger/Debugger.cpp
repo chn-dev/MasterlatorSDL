@@ -17,6 +17,13 @@
  *******************************************************************************/
 
 
+/*----------------------------------------------------------------------------*/
+/*!
+\file Debugger.cpp
+\author Christian Nowak <chnowak@web.de>
+\brief Implementation of the GGMS Debugger
+*/
+/*----------------------------------------------------------------------------*/
 #include "Debugger.h"
 #include "DebuggerSectionDisassembly.h"
 #include "DebuggerSectionRegisters.h"
@@ -27,6 +34,11 @@
 #include "Font.h"
 
 
+/*----------------------------------------------------------------------------*/
+/*! 2024-09-23
+Constructor
+*/
+/*----------------------------------------------------------------------------*/
 Debugger::Debugger() :
    m_pMachine( 0 ),
    m_Activated( false ),
@@ -36,6 +48,11 @@ Debugger::Debugger() :
 }
 
 
+/*----------------------------------------------------------------------------*/
+/*! 2024-09-23
+Constructor
+*/
+/*----------------------------------------------------------------------------*/
 Debugger::Debugger( GGMS *pMachine ) :
    m_pMachine( pMachine ),
    m_Activated( false ),
@@ -50,6 +67,11 @@ Debugger::Debugger( GGMS *pMachine ) :
 }
 
 
+/*----------------------------------------------------------------------------*/
+/*! 2024-09-23
+Destructor
+*/
+/*----------------------------------------------------------------------------*/
 Debugger::~Debugger()
 {
    for( int i = 0; i < m_Sections.size(); i++ )
@@ -70,23 +92,44 @@ Debugger::~Debugger()
 }
 
 
+/*----------------------------------------------------------------------------*/
+/*! 2024-09-23
+Load a wla-dx compatible .sym file
+\param fname The symbols file name
+*/
+/*----------------------------------------------------------------------------*/
 void Debugger::loadSymbolsFile( std::string fname )
 {
    sectionDisassembly()->loadSymbolsFile( fname );
 }
 
 
+/*----------------------------------------------------------------------------*/
+/*! 2024-09-23
+\return The GGMS object
+*/
+/*----------------------------------------------------------------------------*/
 GGMS *Debugger::machine() const
 {
    return( m_pMachine );
 }
 
 
+/*----------------------------------------------------------------------------*/
+/*! 2024-09-23
+Callback function called by the Z80 core
+*/
+/*----------------------------------------------------------------------------*/
 void Debugger::z80_execStart( u16 loc )
 {
 }
 
 
+/*----------------------------------------------------------------------------*/
+/*! 2024-09-23
+Callback function called by the Z80 core
+*/
+/*----------------------------------------------------------------------------*/
 void Debugger::z80_execFinish( u16 loc )
 {
    if( isActivated() )
@@ -96,12 +139,24 @@ void Debugger::z80_execFinish( u16 loc )
 }
 
 
+/*----------------------------------------------------------------------------*/
+/*! 2024-09-23
+Callback function called by the Z80 core when disassembling code
+*/
+/*----------------------------------------------------------------------------*/
 std::string Debugger::z80_locationToLabel( u16 loc )
 {
    return( sectionDisassembly()->locationToLabel( loc ) );
 }
 
 
+/*----------------------------------------------------------------------------*/
+/*! 2024-09-23
+Check whether a specific address has a breakpoint, taking into account paging
+\param loc The 16bit memory adress
+\return true if that address has a breakpoint
+*/
+/*----------------------------------------------------------------------------*/
 bool Debugger::isAtBreakpoint( u16 loc ) const
 {
    SectionDisassembly *pSecDis = sectionDisassembly();
@@ -111,6 +166,11 @@ bool Debugger::isAtBreakpoint( u16 loc ) const
 }
 
 
+/*----------------------------------------------------------------------------*/
+/*! 2024-09-23
+\return The disassembly section
+*/
+/*----------------------------------------------------------------------------*/
 Debugger::SectionDisassembly *Debugger::sectionDisassembly() const
 {
    for( int i = 0; i < m_Sections.size(); i++ )
@@ -124,12 +184,23 @@ Debugger::SectionDisassembly *Debugger::sectionDisassembly() const
 }
 
 
+/*----------------------------------------------------------------------------*/
+/*! 2024-09-23
+Callback function called by the Z80 core to check whether it should break
+*/
+/*----------------------------------------------------------------------------*/
 bool Debugger::z80_break()
 {
    return( m_Break );
 }
 
 
+/*----------------------------------------------------------------------------*/
+/*! 2024-09-23
+De/activate the debugger
+\param ac true if the debugger shall be activated
+*/
+/*----------------------------------------------------------------------------*/
 void Debugger::activate( bool ac )
 {
    if( m_Activated == ac )
@@ -144,12 +215,24 @@ void Debugger::activate( bool ac )
 }
 
 
+/*----------------------------------------------------------------------------*/
+/*! 2024-09-23
+\return true if the debugger is activated
+*/
+/*----------------------------------------------------------------------------*/
 bool Debugger::isActivated() const
 {
    return( m_Activated );
 }
 
 
+/*----------------------------------------------------------------------------*/
+/*! 2024-09-23
+Execute all debugger sections
+\param pScreenBuffer Pointer to the output screen buffer
+\return true if the screen shall be blanked
+*/
+/*----------------------------------------------------------------------------*/
 bool Debugger::execSections( u8 *pScreenBuffer )
 {
    bool screenBlank = false;
@@ -183,6 +266,13 @@ bool Debugger::execSections( u8 *pScreenBuffer )
 }
 
 
+/*----------------------------------------------------------------------------*/
+/*! 2024-09-23
+Execute the debugger
+\param pScreenBuffer Pointer to the output screen buffer
+\return true if the screen shall be blanked
+*/
+/*----------------------------------------------------------------------------*/
 bool Debugger::doDebug( u8 *pScreenBuffer )
 {
    bool screenBlank = execSections( pScreenBuffer );
@@ -213,6 +303,13 @@ bool Debugger::doDebug( u8 *pScreenBuffer )
 }
 
 
+/*----------------------------------------------------------------------------*/
+/*! 2024-09-23
+Execute a single Z80 instruction
+\param pScreenBuffer Pointer to the output screen buffer
+\return true if a complete screen frame has been finished rendering
+*/
+/*----------------------------------------------------------------------------*/
 bool Debugger::singleInstructionStep( u8 *pScreenBuffer )
 {
    return( m_pMachine->singleInstructionStep(

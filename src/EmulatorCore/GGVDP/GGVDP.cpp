@@ -151,6 +151,12 @@ u8 GGVDP::registerValue( int n ) const
 }
 
 
+/*----------------------------------------------------------------------------*/
+/*! 2024-09-23
+Mark a specific tile as "dirty"
+\param tile The tile number (0..GGVDP_NUM_TILES*8-1)
+*/
+/*----------------------------------------------------------------------------*/
 void GGVDP::pushTileCache( u32 tile )
 {
    if( !m_tileCacheDirty[tile] )
@@ -162,6 +168,11 @@ void GGVDP::pushTileCache( u32 tile )
 }
 
 
+/*----------------------------------------------------------------------------*/
+/*! 2024-09-23
+\return The number of the last tile that has been marked as "dirty"
+*/
+/*----------------------------------------------------------------------------*/
 u32 GGVDP::popTileCache()
 {
    int tile;
@@ -176,6 +187,11 @@ u32 GGVDP::popTileCache()
 }
 
 
+/*----------------------------------------------------------------------------*/
+/*! 2024-09-23
+Mark all tiles as "dirty"
+*/
+/*----------------------------------------------------------------------------*/
 void GGVDP::forceDirtyTileCache()
 {
    m_tileCacheTop = -1;
@@ -192,6 +208,13 @@ void GGVDP::forceDirtyTileCache()
 }
 
 
+/*----------------------------------------------------------------------------*/
+/*! 2024-09-23
+Render a specific tile's line (8 pixels) to the internal tile cache
+\param tile The tile number (0..GGVDP_NUM_TILES-1)
+\param line The line number (0..7)
+*/
+/*----------------------------------------------------------------------------*/
 void GGVDP::renderTileLine( u32 tile, u32 line )
 {
    u8 *src;
@@ -221,6 +244,12 @@ void GGVDP::renderTileLine( u32 tile, u32 line )
 }
 
 
+/*----------------------------------------------------------------------------*/
+/*! 2024-09-23
+Render a specific tile to the internal tile cache
+\param tile The tile number (0..GGVDP_NUM_TILES-1)
+*/
+/*----------------------------------------------------------------------------*/
 void GGVDP::renderTile( u32 tile )
 {
    for( u32 line = 0; line < 8; line++ )
@@ -230,6 +259,11 @@ void GGVDP::renderTile( u32 tile )
 }
 
 
+/*----------------------------------------------------------------------------*/
+/*! 2024-09-23
+Render all tiles that have been marked "dirty" to the internal tile cache
+*/
+/*----------------------------------------------------------------------------*/
 void GGVDP::processTileCache()
 {
    u32 tile;
@@ -286,6 +320,13 @@ void GGVDP_RenderAllTiles(GGVDP *vdp) {
 }
 */
 
+
+/*----------------------------------------------------------------------------*/
+/*! 2024-09-23
+Change switch the VDP's mode between Game Gear and Master System mode
+\param en true=Game Gear mode, false=Master System mode
+*/
+/*----------------------------------------------------------------------------*/
 void GGVDP::setGG( bool en )
 {
    m_gg = en;
@@ -294,66 +335,117 @@ void GGVDP::setGG( bool en )
 }
 
 
+/*----------------------------------------------------------------------------*/
+/*! 2024-09-23
+\return true if in Game Gear mode, false if in Master System Mode
+*/
+/*----------------------------------------------------------------------------*/
 bool GGVDP::isGG() const
 {
    return( m_gg );
 }
 
 
+/*----------------------------------------------------------------------------*/
+/*! 2024-09-23
+\return true if the frame IRQ has been raised
+*/
+/*----------------------------------------------------------------------------*/
 bool GGVDP::frameIRQ() const
 {
    return( m_frame_irq != 0 );
 }
 
 
+/*----------------------------------------------------------------------------*/
+/*! 2024-09-23
+*/
+/*----------------------------------------------------------------------------*/
 void GGVDP::clearFrameIRQ()
 {
    m_frame_irq = 0;
 }
 
 
+/*----------------------------------------------------------------------------*/
+/*! 2024-09-23
+\return true if the line IRQ is raised
+*/
+/*----------------------------------------------------------------------------*/
 bool GGVDP::lineIRQ() const
 {
    return( m_line_irq != 0 );
 }
 
 
+/*----------------------------------------------------------------------------*/
+/*! 2024-09-23
+*/
+/*----------------------------------------------------------------------------*/
 void GGVDP::clearLineIRQ()
 {
    m_line_irq = 0;
 }
 
 
+/*----------------------------------------------------------------------------*/
+/*! 2024-09-23
+\return true if an inter-sprite collision has been detected
+*/
+/*----------------------------------------------------------------------------*/
 bool GGVDP::collision() const
 {
    return( m_collision != 0 );
 }
 
 
+/*----------------------------------------------------------------------------*/
+/*! 2024-09-23
+*/
+/*----------------------------------------------------------------------------*/
 void GGVDP::clearCollision()
 {
    m_collision = 0;
 }
 
 
+/*----------------------------------------------------------------------------*/
+/*! 2024-09-23
+\return true if an IRQ is pending
+*/
+/*----------------------------------------------------------------------------*/
 bool GGVDP::irqPending() const
 {
    return( m_irq != 0 );
 }
 
 
+/*----------------------------------------------------------------------------*/
+/*! 2024-09-23
+*/
+/*----------------------------------------------------------------------------*/
 void GGVDP::irqClear()
 {
    m_irq = 0;
 }
 
 
+/*----------------------------------------------------------------------------*/
+/*! 2024-09-23
+\return The current raster line (0..261)
+*/
+/*----------------------------------------------------------------------------*/
 u16 GGVDP::vcount() const
 {
    return( m_vcount );
 }
 
 
+/*----------------------------------------------------------------------------*/
+/*! 2024-09-23
+\return true if the palette has changed since the last call of paletteChanged()
+*/
+/*----------------------------------------------------------------------------*/
 bool GGVDP::paletteChanged()
 {
    bool result = m_paletteChanged;
@@ -363,18 +455,35 @@ bool GGVDP::paletteChanged()
 }
 
 
+/*----------------------------------------------------------------------------*/
+/*! 2024-09-23
+\return The width in pixels of the screen (160 in Game Gear mode, 256 in Master System mode)
+*/
+/*----------------------------------------------------------------------------*/
 int GGVDP::screenWidth() const
 {
    return( m_screenw );
 }
 
 
+/*----------------------------------------------------------------------------*/
+/*! 2024-09-23
+\return The height in pixels of the screen (144 in Game Gear mode, 192 in Master System mode)
+*/
+/*----------------------------------------------------------------------------*/
 int GGVDP::screenHeight() const
 {
    return( m_screenh );
 }
 
 
+/*----------------------------------------------------------------------------*/
+/*! 2024-09-23
+Retrieve color information from the VDP's palette
+\param n The color number
+\return The Color entry with red/green/blue components
+*/
+/*----------------------------------------------------------------------------*/
 GGVDP::Color GGVDP::getColor( int n ) const
 {
    Color c;
@@ -395,12 +504,24 @@ GGVDP::Color GGVDP::getColor( int n ) const
 }
 
 
+/*----------------------------------------------------------------------------*/
+/*! 2024-09-23
+\param en true if screen rendering shall be enabled
+*/
+/*----------------------------------------------------------------------------*/
 void GGVDP::enableRendering( bool en )
 {
    m_render = en;
 }
 
 
+/*----------------------------------------------------------------------------*/
+/*! 2024-09-23
+Save the VDP's internal state to a block of memory
+\param d Pointer to a block of memory
+\return The number of bytes written to the block of memory
+*/
+/*----------------------------------------------------------------------------*/
 int GGVDP::saveState( u8 *d )
 {
    int s = 0;
@@ -422,6 +543,13 @@ int GGVDP::saveState( u8 *d )
 }
 
 
+/*----------------------------------------------------------------------------*/
+/*! 2024-09-23
+Load the VDP's internal state from a block of memory
+\param d Pointer to the block of memory
+\return The number of bytes read from the block of memory
+*/
+/*----------------------------------------------------------------------------*/
 int GGVDP::loadState( u8 *d )
 {
    int s = 0;
@@ -444,6 +572,13 @@ int GGVDP::loadState( u8 *d )
    return( s );
 }
 
+
+/*----------------------------------------------------------------------------*/
+/*! 2024-09-23
+Write a byte to the VDP's address/control register
+\param d The byte to be written
+*/
+/*----------------------------------------------------------------------------*/
 
 /* Write to the address/control register */
 void GGVDP::writeControl( u8 d )
@@ -470,6 +605,12 @@ void GGVDP::writeControl( u8 d )
 }
 
 
+/*----------------------------------------------------------------------------*/
+/*! 2024-09-23
+Write a byte to the VDP's data register
+\param d The byte to be written
+*/
+/*----------------------------------------------------------------------------*/
 void GGVDP::writeData( u8 d )
 {
    /*GGMS * machine = (GGMS*)vdp->val;*/
@@ -506,6 +647,12 @@ void GGVDP::writeData( u8 d )
 }
 
 
+/*----------------------------------------------------------------------------*/
+/*! 2024-09-23
+Read a byte from the VDP's data register
+\return The byte read from the data register
+*/
+/*----------------------------------------------------------------------------*/
 u8 GGVDP::readData()
 {
    u8 d = 0xff;
@@ -531,6 +678,15 @@ u8 GGVDP::readData()
 }
 
 
+/*----------------------------------------------------------------------------*/
+/*! 2024-09-23
+Render a line of the background
+\param cl Number of the raster line to be rendered
+\param oprint Used for deciding whether sprites (being rendered after the background) 
+ are behind or in front of the background
+\param destline Pointer to the line's data buffer
+*/
+/*----------------------------------------------------------------------------*/
 void GGVDP::renderBG( int cl, u8 *oprint, u8 *destline )
 {
    int xofs, yofs, i;
@@ -663,7 +819,16 @@ void GGVDP::renderBG( int cl, u8 *oprint, u8 *destline )
 }
 
 
-/* Render the current raster line */
+/*----------------------------------------------------------------------------*/
+/*! 2024-09-23
+Render the current raster line to a display buffer
+\param pDisplayBuffer Pointer to the display buffer
+\param displayBufferWidth Width in pixels of the display buffer
+\param displayBufferHeight Height in pixels of the display buffer
+\param displayBufferXOfs X-Offset within the display buffer
+\param displayBufferYOfs Y-Offset within the display buffer
+*/
+/*----------------------------------------------------------------------------*/
 void GGVDP::renderLine( u8 *pDisplayBuffer, int displayBufferWidth, int displayBufferHeight, int displayBufferXOfs, int displayBufferYOfs )
 {
    int curLine, i,j;
@@ -804,7 +969,17 @@ void GGVDP::renderLine( u8 *pDisplayBuffer, int displayBufferWidth, int displayB
 }
 
 
-/* Returns 1 if an INT should be generated */
+/*----------------------------------------------------------------------------*/
+/*! 2024-09-23
+Execute the VDP for one raster line and render that line to a display buffer.
+\param pDisplayBuffer Pointer to the display buffer
+\param displayBufferWidth Width in pixels of the display buffer
+\param displayBufferHeight Height in pixels of the display buffer
+\param displayBufferXOfs X-Offset within the display buffer
+\param displayBufferYOfs Y-Offset within the display buffer
+\return 1 if an INT should be generated (i.e.: a frame has been finished)
+*/
+/*----------------------------------------------------------------------------*/
 int GGVDP::cycle( u8 *pDisplayBuffer, int displayBufferWidth, int displayBufferHeight, int displayBufferXOfs, int displayBufferYOfs )
 {
    int result = 0;
@@ -840,7 +1015,7 @@ int GGVDP::cycle( u8 *pDisplayBuffer, int displayBufferWidth, int displayBufferH
       }
    } else
    {
-      if( ( m_vcount == 193) && ( m_regs[1] & 0x20 ) && ( m_frame_irq == 1 ) )
+      if( ( m_vcount == 193 ) && ( m_regs[1] & 0x20 ) && ( m_frame_irq == 1 ) )
       {
          result |= GGVDP_CYCLE_IRQ;
          m_irq = 1;

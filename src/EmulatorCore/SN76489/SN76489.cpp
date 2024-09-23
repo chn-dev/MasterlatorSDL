@@ -17,7 +17,13 @@
  *******************************************************************************/
 
 
-/* SN76489.c */
+/*----------------------------------------------------------------------------*/
+/*!
+\file SN76489.cpp
+\author Christian Nowak <chnowak@web.de>
+\brief Implementation of the VDP (Video Display Processor)
+*/
+/*----------------------------------------------------------------------------*/
 #include <sys/types.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -46,16 +52,32 @@ static u16 SN76489_Volumes[16] =
 };
 
 
+/*----------------------------------------------------------------------------*/
+/*! 2024-09-23
+Constructor
+*/
+/*----------------------------------------------------------------------------*/
 SN76489::SN76489()
 {
 }
 
 
+/*----------------------------------------------------------------------------*/
+/*! 2024-09-23
+Destructor
+*/
+/*----------------------------------------------------------------------------*/
 SN76489::~SN76489()
 {
 }
 
 
+/*----------------------------------------------------------------------------*/
+/*! 2024-09-23
+Create a new SN76489 object
+\return Pointer to the new SN76489 object
+*/
+/*----------------------------------------------------------------------------*/
 SN76489 *SN76489::create()
 {
    SN76489 *pSnd = new SN76489();
@@ -67,6 +89,10 @@ SN76489 *SN76489::create()
 }
 
 
+/*----------------------------------------------------------------------------*/
+/*! 2024-09-23
+*/
+/*----------------------------------------------------------------------------*/
 void SN76489::reset()
 {
    m_sqofs[0] = 0;
@@ -90,6 +116,16 @@ void SN76489::reset()
 }
 
 
+/*----------------------------------------------------------------------------*/
+/*! 2024-09-23
+Generate sound data for a specific voice
+\param sampleFreq The sampling frequency in Hz
+\param bufLen The output buffer length in samples
+\param buf The output buffer (assuming unsigned 16bit)
+\param overwrite true if the output samples should overwrite the existing samples in the 
+ buffer or false if the should be added
+*/
+/*----------------------------------------------------------------------------*/
 void SN76489::calcVoice( int sampleFreq, int bufLen, int voice, u16 *buf, bool overwrite )
 {
    s16 pos = ( ( ( m_pos[voice] ? -32767 : 32767 ) * (s32)SN76489_Volumes[m_chanvol[voice]] ) >> 16 ) >> 2;
@@ -118,6 +154,15 @@ void SN76489::calcVoice( int sampleFreq, int bufLen, int voice, u16 *buf, bool o
 }
 
 
+/*----------------------------------------------------------------------------*/
+/*! 2024-09-23
+Execute the sound processor for a specific number of sound samples and generate the 
+sound data
+\param sampleFreq The sampling frequency in Hz
+\param pDest The output buffer (assuming unsigned 16bit)
+\param len The output buffer length in samples
+*/
+/*----------------------------------------------------------------------------*/
 void SN76489::cycle( int sampleFreq, u16 *pDest, int len )
 {
    for ( int c = 0; c < 3; c++ )
@@ -158,6 +203,14 @@ void SN76489::cycle( int sampleFreq, u16 *pDest, int len )
 }
 
 
+/*----------------------------------------------------------------------------*/
+/*! 2024-09-23
+Retrieve the square width value for calculating the square wave form
+\param channel The channel number
+\param sampleFreq The sampling frequency in Hz
+\return The sqare width value
+*/
+/*----------------------------------------------------------------------------*/
 u32 SN76489::sqWidth( int channel, int sampleFreq )
 {
    channel &= 3;
@@ -194,6 +247,12 @@ u32 SN76489::sqWidth( int channel, int sampleFreq )
 }
 
 
+/*----------------------------------------------------------------------------*/
+/*! 2024-09-23
+Write a byte to the SN76489's data register
+\param d The byte to be written
+*/
+/*----------------------------------------------------------------------------*/
 void SN76489::write( u8 d )
 {
    if( ( d & 0x90 ) == 0x90 )
@@ -259,6 +318,13 @@ void SN76489::write( u8 d )
 }
 
 
+/*----------------------------------------------------------------------------*/
+/*! 2024-09-23
+Save the SN76489's internal state to a block of memory
+\param d Pointer to a block of memory
+\return The number of bytes written to the block of memory
+*/
+/*----------------------------------------------------------------------------*/
 int SN76489::saveState( u8 *d )
 {
    int s = 0;
@@ -276,6 +342,13 @@ int SN76489::saveState( u8 *d )
 }
 
 
+/*----------------------------------------------------------------------------*/
+/*! 2024-09-23
+Load the SN76489's internal state from a block of memory
+\param d Pointer to the block of memory
+\return The number of bytes read from the block of memory
+*/
+/*----------------------------------------------------------------------------*/
 int SN76489::loadState( u8 *d )
 {
    int s = 0;

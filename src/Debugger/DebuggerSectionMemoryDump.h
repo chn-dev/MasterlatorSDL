@@ -17,6 +17,13 @@
  *******************************************************************************/
 
 
+/*----------------------------------------------------------------------------*/
+/*!
+\file DebuggerSectionMemoryDump.h
+\author Christian Nowak <chnowak@web.de>
+\brief Implementation of the memory dump section.
+*/
+/*----------------------------------------------------------------------------*/
 #ifndef __DEBUGGERSECTIONMEMORYDUMP_H__
 #define __DEBUGGERSECTIONMEMORYDUMP_H__
 
@@ -24,6 +31,12 @@
 #include "DebuggerSection.h"
 #include "DebuggerSectionRegisters.h"
 
+/*----------------------------------------------------------------------------*/
+/*!
+\class SectionMemoryDump
+\date  2024-09-23
+*/
+/*----------------------------------------------------------------------------*/
 class Debugger::SectionMemoryDump : public Section
 {
 public:
@@ -55,4 +68,3 @@ private:
 };
 
 #endif
-

@@ -17,6 +17,13 @@
  *******************************************************************************/
 
 
+/*----------------------------------------------------------------------------*/
+/*!
+\file DebuggerSectionMemoryDump.cpp
+\author Christian Nowak <chnowak@web.de>
+\brief Implementation of the memory dump section.
+*/
+/*----------------------------------------------------------------------------*/
 #include "Debugger.h"
 #include "DebuggerSectionMemoryDump.h"
 #include "Font.h"

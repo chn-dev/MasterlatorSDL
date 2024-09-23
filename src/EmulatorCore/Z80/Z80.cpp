@@ -17,7 +17,13 @@
  *******************************************************************************/
 
 
-/* Z80.c */
+/*----------------------------------------------------------------------------*/
+/*!
+\file Z80.cpp
+\author Christian Nowak <chnowak@web.de>
+\brief Implementation of the Z80 CPU
+*/
+/*----------------------------------------------------------------------------*/
 #include <sys/types.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -30,9 +36,12 @@
 #include "addtab.h"
 #include "Z80_macros.h"
 #include "Z80_Disasm.h"
-/* #include "Z80_instructions.h" */
 
 
+/*----------------------------------------------------------------------------*/
+/*! 2024-09-23
+*/
+/*----------------------------------------------------------------------------*/
 bool Z80::Instruction::operator==( const Z80::Instruction &other ) const
 {
    if( address != other.address ||
@@ -43,12 +52,21 @@ bool Z80::Instruction::operator==( const Z80::Instruction &other ) const
 }
 
 
+/*----------------------------------------------------------------------------*/
+/*! 2024-09-23
+*/
+/*----------------------------------------------------------------------------*/
 bool Z80::Instruction::operator!=( const Z80::Instruction &other ) const
 {
    return( ! operator==( other ) );
 }
 
 
+/*----------------------------------------------------------------------------*/
+/*! 2024-09-23
+Convert the Instruction to a string
+*/
+/*----------------------------------------------------------------------------*/
 std::string Z80::Instruction::toString() const
 {
    std::string sCode;
@@ -83,16 +101,33 @@ std::string Z80::Instruction::toString() const
 }
 
 
+/*----------------------------------------------------------------------------*/
+/*! 2024-09-23
+Destructor
+*/
+/*----------------------------------------------------------------------------*/
 Z80::MemoryInterface::~MemoryInterface()
 {
 }
 
 
+/*----------------------------------------------------------------------------*/
+/*! 2024-09-23
+Destructor
+*/
+/*----------------------------------------------------------------------------*/
 Z80::DebuggerInterface::~DebuggerInterface()
 {
 }
 
 
+/*----------------------------------------------------------------------------*/
+/*! 2024-09-23
+Constructor
+\param pInterface Pointer to the memory interface for reading/writing from/to memory 
+and ports
+*/
+/*----------------------------------------------------------------------------*/
 Z80::Z80( Z80::MemoryInterface *pInterface )
 {
    reset();
@@ -101,12 +136,22 @@ Z80::Z80( Z80::MemoryInterface *pInterface )
 }
 
 
+/*----------------------------------------------------------------------------*/
+/*! 2024-09-23
+Destructor
+*/
+/*----------------------------------------------------------------------------*/
 Z80::~Z80()
 {
    reset();
 }
 
 
+/*----------------------------------------------------------------------------*/
+/*! 2024-09-23
+This function is invoked when the CPU encounters an illegal instruction
+*/
+/*----------------------------------------------------------------------------*/
 int Z80::illegalInstruction()
 {
 /*     printf ("Illegal opcode at %08x\n",GGMS_Addy2ROM((GGMS*)cpu_val, cpu_PC.aword)); */
@@ -123,6 +168,10 @@ int Z80::illegalInstruction()
 }
 
 
+/*----------------------------------------------------------------------------*/
+/*! 2024-09-23
+*/
+/*----------------------------------------------------------------------------*/
 void Z80::reset()
 {
    m_I = 0;
@@ -147,6 +196,13 @@ void Z80::reset()
 }
 
 
+/*----------------------------------------------------------------------------*/
+/*! 2024-09-23
+Create a new Z80 object
+\param pInterface Pointer to the memory interface
+\return Pointer to the new Z80 object
+*/
+/*----------------------------------------------------------------------------*/
 Z80 *Z80::create( Z80::MemoryInterface *pInterface )
 {
    Z80 *pCpu = new Z80( pInterface );
@@ -158,6 +214,11 @@ Z80 *Z80::create( Z80::MemoryInterface *pInterface )
 }
 
 
+/*----------------------------------------------------------------------------*/
+/*! 2024-09-23
+\param pDebuggerInterface Pointer to the debugger interface
+*/
+/*----------------------------------------------------------------------------*/
 void Z80::setDebugger( Z80::DebuggerInterface *pDebuggerInterface )
 {
    m_pDebuggerInterface = pDebuggerInterface;
@@ -259,25 +320,42 @@ int Z80_Decode ( Z80 * x )
 */
 
 
-/*  Create an interrupt */
+/*----------------------------------------------------------------------------*/
+/*! 2024-09-23
+Raise an interrupt
+\param vector The 16bit interrupt vector
+*/
+/*----------------------------------------------------------------------------*/
+
 void Z80::interrupt( u16 vector )
 {
    if( vector == Z80_NMI )
    {
-      cpu_IFF |= 0x20;   /*  NMI */
+      cpu_IFF |= 0x20;   //  NMI
    } else
-   {/* if ( cpu_IFF&1 ) */
-      cpu_IFF |= 0x10;   /*  INT */
+   {// if ( cpu_IFF&1 )
+      cpu_IFF |= 0x10;   //  INT
    }
 }
 
 
+/*----------------------------------------------------------------------------*/
+/*! 2024-09-23
+Clear the interrupt
+*/
+/*----------------------------------------------------------------------------*/
 void Z80::clearINT()
 {
    cpu_IFF &= ~0x10;
 }
 
 
+/*----------------------------------------------------------------------------*/
+/*! 2024-09-23
+Execute the interrupt
+\return The number of CPU cycles that has been consumed
+*/
+/*----------------------------------------------------------------------------*/
 int Z80::execInterrupt()
 {
    /*  Any pending interrupts ? */
@@ -333,102 +411,199 @@ int Z80::execInterrupt()
 }
 
 
+/*----------------------------------------------------------------------------*/
+/*! 2024-09-23
+\return AF register value
+*/
+/*----------------------------------------------------------------------------*/
 union_word Z80::getAF() const
 {
    return( m_AF );
 }
 
 
+/*----------------------------------------------------------------------------*/
+/*! 2024-09-23
+Set the AF register value
+\param v
+*/
+/*----------------------------------------------------------------------------*/
 void Z80::setAF( union_word v )
 {
    m_AF = v;
 }
 
 
+/*----------------------------------------------------------------------------*/
+/*! 2024-09-23
+\return BC register value
+*/
+/*----------------------------------------------------------------------------*/
 union_word Z80::getBC() const
 {
    return( m_BC );
 }
 
 
+/*----------------------------------------------------------------------------*/
+/*! 2024-09-23
+Set the BC register value
+\param v
+*/
+/*----------------------------------------------------------------------------*/
 void Z80::setBC( union_word v )
 {
    m_BC = v;
 }
 
 
+/*----------------------------------------------------------------------------*/
+/*! 2024-09-23
+\return DE register value
+*/
+/*----------------------------------------------------------------------------*/
 union_word Z80::getDE() const
 {
    return( m_DE );
 }
 
 
+/*----------------------------------------------------------------------------*/
+/*! 2024-09-23
+Set the DE register value
+\param v
+*/
+/*----------------------------------------------------------------------------*/
 void Z80::setDE( union_word v )
 {
    m_DE = v;
 }
 
 
+/*----------------------------------------------------------------------------*/
+/*! 2024-09-23
+\return HL register value
+*/
+/*----------------------------------------------------------------------------*/
 union_word Z80::getHL() const
 {
    return( m_HL );
 }
 
 
+/*----------------------------------------------------------------------------*/
+/*! 2024-09-23
+Set the HL register value
+\param v
+*/
+/*----------------------------------------------------------------------------*/
 void Z80::setHL( union_word v )
 {
    m_HL = v;
 }
 
 
+/*----------------------------------------------------------------------------*/
+/*! 2024-09-23
+\return SP register value
+*/
+/*----------------------------------------------------------------------------*/
 union_word Z80::getSP() const
 {
    return( m_SP );
 }
 
 
+/*----------------------------------------------------------------------------*/
+/*! 2024-09-23
+Set the SP register value
+\param v
+*/
+/*----------------------------------------------------------------------------*/
 void Z80::setSP( union_word v )
 {
    m_SP = v;
 }
 
 
+/*----------------------------------------------------------------------------*/
+/*! 2024-09-23
+\return IX register value
+*/
+/*----------------------------------------------------------------------------*/
 union_word Z80::getIX() const
 {
    return( m_IX );
 }
 
 
+/*----------------------------------------------------------------------------*/
+/*! 2024-09-23
+Set the IX register value
+\param v
+*/
+/*----------------------------------------------------------------------------*/
 void Z80::setIX( union_word v )
 {
    m_IX = v;
 }
 
 
+/*----------------------------------------------------------------------------*/
+/*! 2024-09-23
+\return IY register value
+*/
+/*----------------------------------------------------------------------------*/
 union_word Z80::getIY() const
 {
    return( m_IY );
 }
 
 
+/*----------------------------------------------------------------------------*/
+/*! 2024-09-23
+Set the IY register value
+\param v
+*/
+/*----------------------------------------------------------------------------*/
 void Z80::setIY( union_word v )
 {
    m_IY = v;
 }
 
 
+/*----------------------------------------------------------------------------*/
+/*! 2024-09-23
+\return PC register value
+*/
+/*----------------------------------------------------------------------------*/
 union_word Z80::getPC() const
 {
    return( m_PC );
 }
 
 
+/*----------------------------------------------------------------------------*/
+/*! 2024-09-23
+Set the PC register value
+\param v
+*/
+/*----------------------------------------------------------------------------*/
 void Z80::setPC( union_word v )
 {
    m_PC = v;
 }
 
 
+/*----------------------------------------------------------------------------*/
+/*! 2024-09-23
+Do a disassembly
+\param loc The 16bit address of the instruction to disassemble
+\param beforeInstr Number of instructions before loc
+\param afterInstr Number of instructions after loc
+\return A vector of disassembled instructions
+*/
+/*----------------------------------------------------------------------------*/
 std::vector<Z80::Z80::Instruction> Z80::disassemble( u16 loc, int beforeInstr, int afterInstr )
 {
    std::vector<Z80::Instruction> result;
@@ -470,6 +645,14 @@ std::vector<Z80::Z80::Instruction> Z80::disassemble( u16 loc, int beforeInstr, i
 }
 
 
+/*----------------------------------------------------------------------------*/
+/*! 2024-09-23
+Do a disassembly
+\param loc The 16bit address of the instruction to disassemble
+\param nInstructions The number of instructions to disassemble
+\return A vector of disassembled instructions
+*/
+/*----------------------------------------------------------------------------*/
 std::vector<Z80::Instruction> Z80::disassemble( u16 loc, int nInstructions )
 {
    std::vector<std::vector<Z80::Instruction> > result;
@@ -531,6 +714,14 @@ std::vector<Z80::Instruction> Z80::disassemble( u16 loc, int nInstructions )
 }
 
 
+/*----------------------------------------------------------------------------*/
+/*! 2024-09-23
+Do a disassembly
+\param startLoc The starting address of the disassembly
+\param endLoc The ending address of the disassembly
+\return A vector of disassembled instructions
+*/
+/*----------------------------------------------------------------------------*/
 std::vector<Z80::Instruction> Z80::disassembleFromToAddress( u16 startLoc, u16 endLoc )
 {
    std::vector<Z80::Instruction> result;
@@ -557,6 +748,13 @@ std::vector<Z80::Instruction> Z80::disassembleFromToAddress( u16 startLoc, u16 e
 }
 
 
+/*----------------------------------------------------------------------------*/
+/*! 2024-09-23
+Disassemble a single instruction
+\param loc The memory address of the instruction to disassemble
+\return The disassembled instruction
+*/
+/*----------------------------------------------------------------------------*/
 Z80::Instruction Z80::disassemble( u16 loc )
 {
    char dest[256];
@@ -582,6 +780,16 @@ Z80::Instruction Z80::disassemble( u16 loc )
 }
 
 
+/*----------------------------------------------------------------------------*/
+/*! 2024-09-23
+Disassemble a number of instructions
+\param loc The memory address of the first instruction to disassemble
+\param nInstructions The number of instructions to disassemble
+\param s If not null, this variable will be filled with the number of bytes that have 
+ been disassembled
+\return The disassembled instructions
+*/
+/*----------------------------------------------------------------------------*/
 std::vector<Z80::Instruction> Z80::disassemble( u16 loc, int nInstructions, int *s )
 {
    std::vector<Z80::Instruction> result;
@@ -601,6 +809,16 @@ std::vector<Z80::Instruction> Z80::disassemble( u16 loc, int nInstructions, int 
    return( result );
 }
 
+
+/*----------------------------------------------------------------------------*/
+/*! 2024-09-23
+Disassemble a single instruction
+\param loc The memory address of the instruction to disassemble
+\param op Pointer to the machine code of the instruction
+\param dest Pointer to the string to write the disassembly to
+\return Length of the instruction in bytes
+*/
+/*----------------------------------------------------------------------------*/
 int Z80::disassemble( u16 loc, u8 *op, char *dest )
 {
    const char *inst;
@@ -818,6 +1036,13 @@ int Z80::disassemble( u16 loc, u8 *op, char *dest )
 }
 
 
+/*----------------------------------------------------------------------------*/
+/*! 2024-09-23
+Save the Z80's internal state to a block of memory
+\param d Pointer to a block of memory
+\return The number of bytes written to the block of memory
+*/
+/*----------------------------------------------------------------------------*/
 int Z80::saveState( u8 *d )
 {
    int s = 0;
@@ -843,6 +1068,13 @@ int Z80::saveState( u8 *d )
 }
 
 
+/*----------------------------------------------------------------------------*/
+/*! 2024-09-23
+Load the Z80's internal state from a block of memory
+\param d Pointer to the block of memory
+\return The number of bytes read from the block of memory
+*/
+/*----------------------------------------------------------------------------*/
 int Z80::loadState( u8 *d )
 {
    int s = 0;
@@ -868,6 +1100,12 @@ int Z80::loadState( u8 *d )
 }
 
 
+/*----------------------------------------------------------------------------*/
+/*! 2024-09-23
+Execute a single instruction
+\return The number of clock cycles that were necessary to execute the instruction
+*/
+/*----------------------------------------------------------------------------*/
 int Z80::step()
 {
    int i = 0;
@@ -922,6 +1160,13 @@ int Z80::step()
 }
 
 
+/*----------------------------------------------------------------------------*/
+/*! 2024-09-23
+Run the CPU for at least a specific number of cycles
+\param c The number of cycles to run
+\return The number of cycles that actually have been used to run the CPU
+*/
+/*----------------------------------------------------------------------------*/
 int Z80::run( int c )
 { /*  Run at least c cycles */
 
@@ -935,12 +1180,9 @@ int Z80::run( int c )
 
       i += cycles;
 
-      if( m_pDebuggerInterface )
+      if( isAtBreakpoint() )
       {
-         if( m_pDebuggerInterface->z80_break() )
-         {
-            break;
-         }
+         break;
       }
    }
 
@@ -948,6 +1190,11 @@ int Z80::run( int c )
 }
 
 
+/*----------------------------------------------------------------------------*/
+/*! 2024-09-23
+\return true if the PC is currently at a breakpoint
+*/
+/*----------------------------------------------------------------------------*/
 bool Z80::isAtBreakpoint() const
 {
    if( m_pDebuggerInterface )

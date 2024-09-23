@@ -29,8 +29,8 @@
 #include "smsscan.h"
 #include "ggscan.h"
 
-static u32 crc32tab[256] = {
-
+static u32 crc32tab[256] =
+{
   0x00000000, 0x77073096, 0xEE0E612C, 0x990951BA,
   0x076DC419, 0x706AF48F, 0xE963A535, 0x9E6495A3,
   0x0EDB8832, 0x79DCB8A4, 0xE0D5E91E, 0x97D2D988,
@@ -100,84 +100,136 @@ static u32 crc32tab[256] = {
   0xB40BBE37, 0xC30C8EA1, 0x5A05DF1B, 0x2D02EF8D
 };
 
-static u32 smsggscan_getcrc32(const char *name) {
 
-	int i;
-	u32 crc = 0;
+/*----------------------------------------------------------------------------*/
+/*! 2024-09-23
+Retrieve the CRC32 from a GG/SMS game name;
+for example "11a68c08 Alien 3 (JUE)" would result in 0x11a68c08
+\param name The game name
+\return The CRC32
+*/
+/*----------------------------------------------------------------------------*/
+static u32 smsggscan_getcrc32( const char *name )
+{
+   int i;
+   u32 crc = 0;
 
-	for (i = 0; i < 8; i++) {
+   for( i = 0; i < 8; i++ )
+   {
+      u32 d = name[7 - i];
 
-		u32 d = name[7 - i];
+      if( d >= '0' && d <= '9' )
+      {
+         crc += ( d - '0' ) << ( ( 4 * i ) );
+      } else
+      if( d >= 'a' && d <= 'f' )
+      {
+         crc += ( ( d - 'a' ) + 10 ) << ( ( 4 * i ) );
+      } else
+      if( d >= 'A' && d <= 'F' )
+      {
+         crc += ( ( d - 'A' ) + 10 ) << ( ( 4 * i ) );
+      }
+   }
 
-		if (d >= '0' && d <= '9') {
-
-			crc += (d - '0') << ((4 * i));
-		} else
-		if (d >= 'a' && d <= 'f') {
-
-			crc += ((d - 'a') + 10) << ((4 * i));
-		} else
-		if (d >= 'A' && d <= 'F') {
-
-			crc += ((d - 'A') + 10) << ((4 * i));
-		}
- 	}
-
-	return crc;
+   return( crc );
 }
 
-u32 calccrc32(u8 *data, u32 length, u32 crc) {
+/*----------------------------------------------------------------------------*/
+/*! 2024-09-23
+Calculate the CRC32 checksum of a block of data
+\param data Pointer to the data
+\param length The data length in bytes
+\param crc The starting value of the CRC. Should usually be ~0.
+\return The CRC32
+*/
+/*----------------------------------------------------------------------------*/
+u32 calccrc32( u8 *data, u32 length, u32 crc )
+{
+   u32 i;
 
-	u32 i;
+   for( i = 0; i < length; i++ )
+   {
+      crc = ( crc >> 8 ) ^ crc32tab[( data[i] ^ crc ) & 0xff];
+   }
 
-	for (i = 0; i < length; i++) {
-
-		crc = (crc >> 8) ^ crc32tab[(data[i] ^ crc) & 0xff];
-  }
-
-	return ~crc;
+   return ( ~crc );
 }
 
-const char *SMS_GetGameFromChecksum(u32 crc) {
 
-	u32 i;
+/*----------------------------------------------------------------------------*/
+/*! 2024-09-23
+Retrieve the SMS game name for a specific CRC32 value
+\param crc The CRC32 value
+\return The corresponding SMS game name or nullptr if not found
+*/
+/*----------------------------------------------------------------------------*/
+const char *SMS_GetGameFromChecksum( u32 crc )
+{
+   u32 i;
 
-	for (i = 0; i < SMSSCAN_NUM_ENTRIES; i++) {
+   for( i = 0; i < SMSSCAN_NUM_ENTRIES; i++ )
+   {
+      if( smsggscan_getcrc32( smsscan[i] ) == crc )
+      {
+         return( &smsscan[i][9] );
+      }
+   }
 
-		if (smsggscan_getcrc32(smsscan[i]) == crc) {
-
-			return &smsscan[i][9];
-		}
- 	}
-
-	return 0;
+   return( 0 );
 }
 
-const char *GG_GetGameFromChecksum(u32 crc) {
 
-	int i;
+/*----------------------------------------------------------------------------*/
+/*! 2024-09-23
+Retrieve the GG game name for a specific CRC32 value
+\param crc The CRC32 value
+\return The corresponding GG game name or nullptr if not found
+*/
+/*----------------------------------------------------------------------------*/
+const char *GG_GetGameFromChecksum( u32 crc )
+{
+   int i;
 
-	for (i = 0; i < GGSCAN_NUM_ENTRIES; i++) {
+   for( i = 0; i < GGSCAN_NUM_ENTRIES; i++ )
+   {
+      if( smsggscan_getcrc32( ggscan[i] ) == crc )
+      {
+         return( &ggscan[i][9] );
+      }
+   }
 
-		if (smsggscan_getcrc32(ggscan[i]) == crc) {
-
-			return &ggscan[i][9];
-		}
- 	}
-
-	return 0;
+   return( 0 );
 }
 
-const char *SMS_GetGame(u8 *rom, u32 length) {
 
-	u32 crc = calccrc32(rom, length, ~0);
+/*----------------------------------------------------------------------------*/
+/*! 2024-09-23
+Retrieve the SMS game name for given binary ROM data
+\param rom Pointer to the binary ROM data
+\param length Size of the ROM data in bytes
+\return The corresponding SMS game name or nullptr if not found
+*/
+/*----------------------------------------------------------------------------*/
+const char *SMS_GetGame( u8 *rom, u32 length )
+{
+   u32 crc = calccrc32( rom, length, ~0 );
 
-	return SMS_GetGameFromChecksum(crc);
+   return( SMS_GetGameFromChecksum( crc ) );
 }
 
-const char *GG_GetGame(u8 *rom, u32 length) {
 
-	u32 crc = calccrc32(rom, length, ~0);
+/*----------------------------------------------------------------------------*/
+/*! 2024-09-23
+Retrieve the GG game name for given binary ROM data
+\param rom Pointer to the binary ROM data
+\param length Size of the ROM data in bytes
+\return The corresponding GG game name or nullptr if not found
+*/
+/*----------------------------------------------------------------------------*/
+const char *GG_GetGame( u8 *rom, u32 length )
+{
+   u32 crc = calccrc32( rom, length, ~0 );
 
-	return GG_GetGameFromChecksum(crc);
+   return( GG_GetGameFromChecksum( crc ) );
 }
