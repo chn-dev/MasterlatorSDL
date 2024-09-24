@@ -71,10 +71,10 @@ bool keyHasBeenReleased( SDL_Keycode keyCode )
 
 static void mixcallback( void *userdata, Uint8 *stream, int len )
 {
-//   Uint16 tmpStream[len / 2];
+   Uint16 tmpStream[len / 2];
    GGMS *pMachine = (GGMS *)userdata;
-//   pMachine->renderAudio( stream, len / 2, 44100 );
-//   memcpy( stream, tmpStream, len );
+   pMachine->renderAudio( tmpStream, len / 2, 44100 );
+   memcpy( stream, tmpStream, len );
 }
 
 
@@ -143,7 +143,7 @@ bool initSDL( GGMS *pMachine, const Config *pConfig )
 
    if( audioDeviceId > 0 )
    {
-//      SDL_PauseAudioDevice( audioDeviceId, 0 );
+      SDL_PauseAudioDevice( audioDeviceId, 0 );
    }
 
    screen.pBuffer = new u8[pConfig->screenBufferWidth * pConfig->screenBufferHeight];
