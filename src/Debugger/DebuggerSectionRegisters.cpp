@@ -17,12 +17,30 @@
  *******************************************************************************/
 
 
+/*----------------------------------------------------------------------------*/
+/*!
+\file DebuggerSectionRegisters.h
+\author Christian Nowak <chnowak@web.de>
+\brief Implementation of the registers section.
+*/
+/*----------------------------------------------------------------------------*/
 #include "Debugger.h"
 #include "DebuggerSectionRegisters.h"
 #include "ArchSDL.h"
 #include "Font.h"
 
 
+/*----------------------------------------------------------------------------*/
+/*! 2024-09-24
+Constructor
+\param pDebugger Pointer to the debugger object
+\param name The section's name
+\param xp The section's x position
+\param yp The section's y position
+\param width The section's width
+\param height The section's height
+*/
+/*----------------------------------------------------------------------------*/
 Debugger::SectionRegisters::SectionRegisters( Debugger *pDebugger, std::string name, int xp, int yp, int width, int height ) :
    Section( pDebugger, name, xp, yp, width, height ),
    m_CurrentRegister( Z80Register_A ),
@@ -70,12 +88,26 @@ Debugger::SectionRegisters::SectionRegisters( Debugger *pDebugger, std::string n
 }
 
 
+/*----------------------------------------------------------------------------*/
+/*! 2024-09-24
+\return true if the section should be visible even if the debugger is inactive
+*/
+/*----------------------------------------------------------------------------*/
 bool Debugger::SectionRegisters::isAlwaysVisible()
 {
    return( false );
 }
 
 
+/*----------------------------------------------------------------------------*/
+/*! 2024-09-24
+Execute the section. This implementation of exec() only draws borders around the section 
+and should be overriden.
+\param pScreenBuffer Pointer to the output screen buffer
+\param isCurrentSection true if this is the currently selected section
+\return true if the screen shall be blanked
+*/
+/*----------------------------------------------------------------------------*/
 bool Debugger::SectionRegisters::exec( u8 *pScreenBuffer, bool isCurrentSection )
 {
    Section::exec( pScreenBuffer, isCurrentSection );
@@ -203,6 +235,15 @@ bool Debugger::SectionRegisters::exec( u8 *pScreenBuffer, bool isCurrentSection 
 }
 
 
+/*----------------------------------------------------------------------------*/
+/*! 2024-09-24
+Generate a string showing a register name and value in hex, (un)signed decimal 
+and ASCII character form.
+\param pDest Pointer to the string to be filled
+\param pName The register name
+\param reg The register value
+*/
+/*----------------------------------------------------------------------------*/
 void Debugger::SectionRegisters::dumpRegister( char *pDest, const char *pName, union_word reg )
 {
    sprintf( pDest, "%s = %04xh = '%c%c' = %5du = %6di",
@@ -215,6 +256,14 @@ void Debugger::SectionRegisters::dumpRegister( char *pDest, const char *pName, u
 }
 
 
+/*----------------------------------------------------------------------------*/
+/*! 2024-09-24
+Print the Z80 registers
+\param x x position
+\param y y position
+\param isCurrentSection true if this is the currently selected section
+*/
+/*----------------------------------------------------------------------------*/
 void Debugger::SectionRegisters::printRegisters( int x, int y, bool isCurrentSection ) const
 {
    union_word af = debugger()->machine()->cpu()->getAF();

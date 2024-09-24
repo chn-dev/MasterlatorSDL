@@ -19,7 +19,7 @@
 
 /*----------------------------------------------------------------------------*/
 /*!
-\file DebuggerDisassembly.h
+\file DebuggerSectionDisassembly.h
 \author Christian Nowak <chnowak@web.de>
 \brief Implementation of the disassembly section.
 */

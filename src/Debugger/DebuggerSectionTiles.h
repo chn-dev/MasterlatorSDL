@@ -17,12 +17,25 @@
  *******************************************************************************/
 
 
+/*----------------------------------------------------------------------------*/
+/*!
+\file DebuggerSectionTiles.h
+\author Christian Nowak <chnowak@web.de>
+\brief Implementation of the tiles section.
+*/
+/*----------------------------------------------------------------------------*/
 #ifndef __DEBUGGERSECTIONTILES_H__
 #define __DEBUGGERSECTIONTILES_H__
 
 #include "Debugger.h"
 #include "DebuggerSection.h"
 
+/*----------------------------------------------------------------------------*/
+/*!
+\class SectionTiles
+\date  2024-09-24
+*/
+/*----------------------------------------------------------------------------*/
 class Debugger::SectionTiles : public Section
 {
 public:
@@ -41,3 +54,4 @@ private:
 };
 
 #endif
+

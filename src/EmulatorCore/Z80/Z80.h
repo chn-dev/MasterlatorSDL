@@ -123,6 +123,7 @@ public:
    int loadState( u8 *d );
    std::vector<Z80::Instruction> disassemble( u16 loc, int beforeInstr, int afterInstr );
    Z80::Instruction disassemble( u16 loc );
+   
 
    union_word getAF() const;
    void setAF( union_word v );
@@ -176,3 +177,4 @@ private:
 };
 
 #endif
+

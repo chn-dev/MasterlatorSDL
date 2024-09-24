@@ -30,6 +30,17 @@
 #include "ArchSDL.h"
 
 
+/*----------------------------------------------------------------------------*/
+/*! 2024-09-24
+Constructor
+\param pDebugger Pointer to the debugger object
+\param name The section's name
+\param xp The section's x position
+\param yp The section's y position
+\param width The section's width
+\param height The section's height
+*/
+/*----------------------------------------------------------------------------*/
 Debugger::SectionMemoryDump::SectionMemoryDump( Debugger *pDebugger, std::string name, int xp, int yp, int width, int height ) :
    Section( pDebugger, name, xp, yp, width, height ),
    m_n( 0 ),
@@ -39,12 +50,26 @@ Debugger::SectionMemoryDump::SectionMemoryDump( Debugger *pDebugger, std::string
 }
 
 
+/*----------------------------------------------------------------------------*/
+/*! 2024-09-24
+\return true if the section should be visible even if the debugger is inactive
+*/
+/*----------------------------------------------------------------------------*/
 bool Debugger::SectionMemoryDump::isAlwaysVisible()
 {
    return( false );
 }
 
 
+/*----------------------------------------------------------------------------*/
+/*! 2024-09-23
+Execute the section. This implementation of exec() only draws borders around the section 
+and should be overriden.
+\param pScreenBuffer Pointer to the output screen buffer
+\param isCurrentSection true if this is the currently selected section
+\return true if the screen shall be blanked
+*/
+/*----------------------------------------------------------------------------*/
 bool Debugger::SectionMemoryDump::exec( u8 *pScreenBuffer, bool isCurrentSection )
 {
    Section::exec( pScreenBuffer, isCurrentSection );
@@ -113,6 +138,13 @@ bool Debugger::SectionMemoryDump::exec( u8 *pScreenBuffer, bool isCurrentSection
 }
 
 
+/*----------------------------------------------------------------------------*/
+/*! 2024-09-24
+Retrieve a 16bit register value of the Z80 CPU
+\param reg Specifies the register
+\return The register's value
+*/
+/*----------------------------------------------------------------------------*/
 u16 Debugger::SectionMemoryDump::getRegisterValue16( SectionRegisters::Z80Register reg ) const
 {
    if( reg == SectionRegisters::Z80Register_BC )
@@ -148,6 +180,14 @@ u16 Debugger::SectionMemoryDump::getRegisterValue16( SectionRegisters::Z80Regist
 }
 
 
+/*----------------------------------------------------------------------------*/
+/*! 2024-09-24
+Print a memory dump
+\param title
+\param x The x position
+\param y The y position
+*/
+/*----------------------------------------------------------------------------*/
 void Debugger::SectionMemoryDump::printMemoryDump( std::string title, int x, int y )
 {
    u16 loc = m_Location;

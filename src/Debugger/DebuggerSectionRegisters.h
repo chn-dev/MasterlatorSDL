@@ -17,12 +17,25 @@
  *******************************************************************************/
 
 
+/*----------------------------------------------------------------------------*/
+/*!
+\file DebuggerSectionRegisters.h
+\author Christian Nowak <chnowak@web.de>
+\brief Implementation of the registers section.
+*/
+/*----------------------------------------------------------------------------*/
 #ifndef __DEBUGGERSECTIONREGISTERS_H__
 #define __DEBUGGERSECTIONREGISTERS_H__
 
 #include "Debugger.h"
 #include "DebuggerSection.h"
 
+/*----------------------------------------------------------------------------*/
+/*!
+\class SectionRegisters
+\date  2024-09-23
+*/
+/*----------------------------------------------------------------------------*/
 class Debugger::SectionRegisters : public Section
 {
 public:
