@@ -71,10 +71,11 @@ bool keyHasBeenReleased( SDL_Keycode keyCode )
 
 static void mixcallback( void *userdata, Uint8 *stream, int len )
 {
-   Uint16 tmpStream[len / 2];
+   std::vector<Uint16> tmpStream;
+   tmpStream.resize( len / 2 );
    GGMS *pMachine = (GGMS *)userdata;
-   pMachine->renderAudio( tmpStream, len / 2, 44100 );
-   memcpy( stream, tmpStream, len );
+   pMachine->renderAudio( tmpStream.data(), len / 2, 44100 );
+   memcpy( stream, tmpStream.data(), len );
 }
 
 
