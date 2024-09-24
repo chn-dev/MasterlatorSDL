@@ -59,8 +59,8 @@ int readCommandLine( int argc, char *argv[], Config *pConfig )
       switch( i )
       {
          case 1: /* version */
-            printf( "Masterlator v0.08b Copyright (c)2001, 2002, 2023 by Christian Nowak <chnowak@web.de>\n" );
-            printf( "Project website: http:/www.chn-dev.net/\n" );
+            printf( "Masterlator v0.1 Copyright (c) 2001-2024 by Christian Nowak <chnowak@web.de>\n" );
+            printf( "Project website: https:/www.chn-dev.net/Projects/Masterlator/\n" );
             break;
 
          case 2: /* rom */

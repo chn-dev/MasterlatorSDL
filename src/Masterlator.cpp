@@ -136,7 +136,6 @@ int main( int argc, char *argv[] )
 
       if( !pDebugger->isActivated() )
       {
-         //while( !singleInstructionStep( pMachine ) );
          pMachine->renderFrame( pScreenBuffer, pMachine->screenWidth(), pMachine->screenHeight(), 0, 0 );
          if( pMachine->isAtBreakpoint() )
          {
@@ -147,8 +146,14 @@ int main( int argc, char *argv[] )
          }
       }
 
+      int xo = 0;
+      int yo = 0;
+
       if( config.debug )
       {
+         xo = ( ( 256 - pMachine->screenWidth() ) / 2 ) + ( getScreen()->width - 256 ) - 10;
+         yo = ( ( 192 - pMachine->screenHeight() ) / 2 ) + 10;
+
          if( keyHasBeenPressed( SDLK_d ) && !pDebugger->isActivated() )
          {
             pDebugger->activate( true );
@@ -169,14 +174,6 @@ int main( int argc, char *argv[] )
       }
 
       // Copy machine screen buffer to main application buffer
-      int xo = 0;
-      int yo = 0;
-      if( config.debug )
-      {
-         xo = ( ( 256 - pMachine->screenWidth() ) / 2 ) + ( getScreen()->width - 256 ) - 10;
-         yo = ( ( 192 - pMachine->screenHeight() ) / 2 ) + 10;
-      }
-
       // Copy pixel data
       for( int y = 0; y < pMachine->screenHeight(); y++ )
       {
