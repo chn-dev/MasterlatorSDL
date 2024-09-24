@@ -123,7 +123,9 @@ bool initSDL( GGMS *pMachine, const Config *pConfig )
       return( false );
    }
 
-   SDL_SetWindowTitle( pWindow, "Masterlator" );
+   char title[256];
+   sprintf( title, "Masterlator v%s", (char *)MASTERLATOR_VERSION );
+   SDL_SetWindowTitle( pWindow, title );
    pGameController = findGameController();
 
    pRenderSurface = SDL_CreateRGBSurface( 0, pConfig->screenBufferWidth, pConfig->screenBufferHeight, 32, 0x00ff0000, 0x0000ff00, 0x000000ff, 0xff000000 );

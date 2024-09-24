@@ -1,6 +1,8 @@
-cmake_minimum_required(VERSION 2.8.4)
+cmake_minimum_required(VERSION 3.15)
 
-project(Masterlator)
+project(Masterlator VERSION 0.1)
+
+add_compile_definitions( MASTERLATOR_VERSION="${CMAKE_PROJECT_VERSION}" )
 
 find_package(SDL2 REQUIRED)
 
@@ -10,6 +12,7 @@ else()
 endif()
 
 include_directories(${SDL2_INCLUDE_DIRS})
+
 
 file(GLOB_RECURSE SOURCE_FILES src/*.cpp src/*.c)
 file(GLOB_RECURSE HEADER_FILES src/*.h)
